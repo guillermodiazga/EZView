@@ -10,14 +10,14 @@ jQuery plugin to show images and pdf files preview
 
 [selector] = Elements should to has a 'href' or 'src' attribute to show it on preview
 
-$([selector]).EZView();
+**$([selector]).EZView();**
 
-##Example:
+## Example:
 * Add preview event to all visible images on page
 
-$('img:visible').EZView();
+**$('img:visible').EZView();**
 
-##Requirements
+## Requirements
 * [jQuery](https://jquery.com/) v. 1.6+
 
 ## License
