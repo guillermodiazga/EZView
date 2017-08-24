@@ -1,0 +1,360 @@
+$.fn.extend({
+    EZView: function(){
+            var arIndex = [];
+            var index = 0;
+            
+            var nextIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAWCAYAAAAfD8YZAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjA1OUQzQkZEMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjA1OUQzQkZDMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Po6G6sQAAAB/SURBVHjaYvj//z8DDANBARALIIvhw8gaFwAxiHGBWAPQNf4nxQBsGok2gAGq6D85BoCAALkGwEwgywBkJ5BsALofSDIAWyAQbQCuUCTKACYGSgDVnE12gJEdVWQnEoqSJyUZgwmqABu4CMQOQEUf8EYV2YUBxcUQuQUgQIABAENaIhLMSm8LAAAAAElFTkSuQmCC';
+            var backIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAWCAYAAAAfD8YZAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjA1OUQzQzAxMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjA1OUQzQzAwMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PjJSsWEAAAB3SURBVHjaYvj//z8DMRgIBIC4AEWMBI0XgBjEWUC0ZjSN/5ENIEcj3AByNf4Hy5GtEaSGXI0YfiZFI4pmUjXCNZOjEaqPPI0gzMRACaDI2RQHGMVRRXEioTh5kmIAE55Y+ACkHID4Ig4lF2hXGFBcDOErAAECDAApfSISSEStFwAAAABJRU5ErkJggg==';
+            var downloadIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjM2MDhDRDE0MDY5RDExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjM2MDhDRDEzMDY5RDExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqrnV/wAAACxSURBVHjaYvz//z8DIcDIyPgBSPGjiwP1MhLUS6QFWBURYwETA43BqAWjFgwBC0CZBQUDASjX/icTf0A3D5sPHID4I5nuDSDoA6gvEshwfQJWs7AJkmHJBJzm4JKAWrKACMMX4DUDnyTUkg14DL8AxAKUWiAANQjd8AeEDCfKAiRLkJMviG1AlF5iFEEtMUCyxIFYfYxQTfw0yscfGaEuGjplEaieRq6rh54P0AFAgAEAR8yvtAJdObEAAAAASUVORK5CYII=';
+            var zoominIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjg5MkI5ODJFMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjg5MkI5ODJEMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PtK4jPoAAAFgSURBVHjarFZRccMwDLVz+58hlMHKYIYQCIUQCINQCBmDQMgYdAwMwUPgWYtyp2lSZa/R3bsktqwXyfJLfCnFSea9j/UyVpzZVKpY6rrFtRqQUGDQFaYMANnI10vgBJeG4BxzM8kdAsjqDQElyr1EO0EUFkLAk1DOgITcf7JI+B5czBJsTUHXQIZB8f2TxSI4QYAsjE8t2YBdmaNUorI1ohgg0f2TfAZ2Dj7qYHJ9Rs/Lq+QwsOeVHMZcUQBkrCCytEazwT1u2XJ4Ys9nogSBZoBjXogRWzKhexBrwNCZyUjuPzUSunHP2JbcvhBcRIHgRWmC3wLJ2rC0CB+WNlvtT0/82CUTmz8nWFsEclbk/IpBI2rWrVeR+RvO/5B6k8gpepQbA64tRFrNA5JJQW5YtpOR/XyXpBcW0SEkBtF0hHbt5w0+3+/CVDosEyWjny+s1/67HrEqN9A0af83+xZgABRpKnOx6YemAAAAAElFTkSuQmCC';
+            var zoomoutIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjg5MkI5ODMyMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjg5MkI5ODMxMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqDoPeEAAAFMSURBVHjarJUBkYQwDEUpCioBB4eDq4SVUAknAQlIQMJKQALrgHPQVcAmO2Unl0loepCZPwy06WvSkLpt2xrJnHMRHgHUsaEFNIHf0lgNIVRgN9CKQwXNoJ77S+KAybA4VzRDFEAC3UFD1vwf0A4YBEf85oV0dhnM56upQ/N5x3T3xVyDjfyMjiA8ih/LYWbnuyWavST3SasVQFL3J8XSvBYGvkhFT02FwQJY6g/yKUjzWvY+k58xgTZFSfLRrG3OW6qF9CQVWL5OkS+liEN+yfutJgRIG8K+WV8Tjdd7qKguk69UhpjjzgCIzG8ttZVRAIUDgNiGShDPfspdS14w5PMaC9dALHVhDXS69fM0eCF1mtLBpqIKYT1pVBaZ86H7QvTxEFLZJIug0xADqL+idyEo5Qp8sKHn++yuiESJ6HPDXgohoIHeki8BBgDP751LFBCcbgAAAABJRU5ErkJggg==';
+            var closeIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjdGODJCNTUzMDZBMzExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjdGODJCNTUyMDZBMzExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PshQd58AAAB+SURBVHjarJTdCcAgDIRDJ3AU95+io7hBmkAsFuWSwgn3oudnflRRVbHRTcN0m5rPIbknvL6nx9wL0RCELZDpH8H4QCDsAFlhx4UNBiDTmxpayVM8LY1aiqHnqReLmTZDfnQGdvQS1qCnRik2pf20C8l8IrRHy/lGWB/bI8AA4oOVMKhFFb8AAAAASUVORK5CYII=';
+            
+            var builtTemplate = function(index){
+                var href = arIndex[index]['href'],
+                    name = arIndex[index]['name'],
+                    isPdf = href.match('.pdf'),
+                    isImg = href.match('(\.jpg|\.png|\.jpeg|\.gif)$');
+                
+                var tools = '<div class="tools">'+
+                        '<spam class="name"><b>'+name+'</b></spam>'+
+                        '<a class="download EZViewHighlight" download href="'+href+'">'+
+                        '<img src="'+downloadIcon+'" alt="Download" /></a>';
+                
+                if (isImg) {
+                    
+                tools +='<a class="zoomin EZViewHighlight" href="">'+
+                        '<img src="'+zoominIcon+'" alt="Download" /></a>'+
+                        '<a class="zoomout EZViewHighlight" href="">'+
+                        '<img src="'+zoomoutIcon+'" alt="Download" /></a>';
+                } 
+                        
+                tools +='<a class="close EZViewHighlight" href="">'+
+                        '<img src="'+closeIcon+'"/></a>'+
+                    '</div>';
+                    
+                // Content to show 
+                var content = tools+'<h1 style="padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)">Unsupported preview</h1>'+tools;
+                
+                // To show pdf files
+                if (isPdf) {
+                    content = tools+'<embed height="'+$(window).height()*0.95+'" width="'+$(window).width()*0.9+
+                        '" src="'+href+'" type="application/pdf" />';
+                }
+                
+                // To show images
+                if (isImg) {
+                    content = tools+'<img src="'+href+'" class="content" />';
+                }
+
+                var container = 
+                    '<table align="center" style="height:100%; width:100%"><tr>'+
+                        '<td width="10%" align="center" valign="middle">';
+                    
+                    if (index > 0) {
+                        container+='<a class="back EZViewHighlight"><img src="'+backIcon+'" alt="Back" /></a>';
+                    }
+                    
+                    container+='</td>'+
+                        '<td width="80%" align="center" valign="middle">'+content+'</td>'+
+                        '<td width="10%" align="center" valign="middle">';
+                    
+                    if (index < arIndex.length-1) {
+                        container +=
+                            '<a class="next EZViewHighlight"><img src="'+nextIcon+'" alt="Next" /></a>';
+                    }
+                        
+                    container += '</td>'+
+                    '</tr></table>';
+                
+                var template = '<div id="EZView" class="hide container">'+container+'</div>';
+                
+                return template;
+            };
+            
+            var appendTemplate = function(template){
+                
+                // Append template to body
+                 $('body').append(template);
+
+                // Set Styles
+                $('#EZView').css({
+                    'background-color': 'rgba(0,0,0,0.5)',
+                    'height':           '100%',
+                    'width':            '100%',
+                    'z-index':          '10000',
+                    'position':         'fixed',
+                    'top':              '0',
+                    'left':             '0',
+                    'cursor':           'default',
+                    'aling-items':      'center',
+                    'margin':           'auto',
+                })
+                .find('table td').css({
+                    'vertical-align': 'middle',
+                }).end()
+                .find('.content').css({
+                    'max-width': $(window).width()*0.7,
+                    'max-height': $(window).height()*0.9,
+                    'z-index':          '10001',
+                }).end()
+                .find('.name').css({
+                    'left': '0',
+                    'position': 'fixed',
+                    'padding': '7px',
+                }).end()
+                .find('.close>img').css({
+                    'top': '0',
+                    'right': '0',
+                    'position': 'fixed',
+                }).end()
+                .find('.back>img').css({
+                    'top': $(window).height()*0.5,
+                    'left': '0',
+                    'position': 'fixed',
+                }).end()
+                .find('.next>img').css({
+                    'top': $(window).height()*0.5,
+                    'right': '0',
+                    'position': 'fixed',
+                }).end()
+                .find('.tools').css({
+                    'background-color': 'rgba(255,255,255,0.5)',
+                    'height':           '35px',
+                    'width':            '100%',
+                    'position':         'fixed',
+                    'top':              '0',
+                    'left':             '0',
+                    'padding':          '3px',
+                    'padding-top':       '0px',
+                    'z-index':          '100000'
+                }).end()
+                .find('.tools>a').css({
+                    'margin' : '10px',
+                }).end()
+                .find('.EZViewHighlight>img').css({
+                    'padding':          '10px',
+                    'height':           'auto',
+                    'width':            'auto',
+                    'z-index':          '100000'
+                }).end()
+                .find('.EZViewHighlight>img').hover(
+                    function(){
+                        $(this).css({
+                            'border-radius':    '100%',
+                            'background-color': 'rgba(255,255,255,0.5)',
+                            'z-index': '100000'
+                        })
+                    },
+                    function(){
+                        $(this).css({
+                            'background-color': '',
+                            'border-radius':    '',
+                        })
+                    },
+                );
+            };
+            
+            var next = function(){
+                var newIndex = index+1;
+
+               if (arIndex[newIndex]) {
+                    index = newIndex;
+                    
+                    $('#EZView').remove();
+                    appendTemplate(builtTemplate(index));
+                    addEvents();
+                    
+                    // Show EZView
+                    $( "#EZView" ).show();
+                }
+            }
+            
+            var back = function(){
+                var newIndex = index-1;
+
+                if (arIndex[newIndex]) {
+                    index = newIndex;
+                    
+                    $('#EZView').remove();
+                    appendTemplate(builtTemplate(index));
+                    addEvents();
+
+                    // Show EZView
+                    $( "#EZView" ).show();
+                }
+            }
+            
+            
+            var keyupEvents = function(e){
+                var keyCode = e.keyCode;
+
+                switch(keyCode){
+                // Esc
+                case 27:
+                    close();
+                    break;
+                    
+                // Next 
+                case 39:
+                    next();
+                    break;
+                
+                // Back
+                case 37:
+                    back();
+                    break;
+                
+                // zoomin
+                case 107:
+                    zoom(true);
+                    break;
+
+                // zoomout
+                case 109:
+                    zoom();
+                    break;
+                }
+            }
+            
+            var close = function (e){
+                // Remove EZView elements
+                $('#EZView').remove();
+
+                // Remove keyup events
+                $(window).off('keyup', null, keyupEvents);
+            }
+            
+            var zoom = function (increment){
+                 var $img   = $('.content', '#EZView'),
+                     height = parseInt($img.css('height')),
+                     width  = parseInt($img.css('width'));
+                     
+                // Avoid lose imng proportions on zoom in
+                $('#EZView').find('.content').css({
+                    'max-width': '',
+                    'max-height': '',
+                })
+                
+                // Enable drag
+                .draggable()
+                .css({'cursor': 'move'});
+
+                // Increase or decrease size
+                if (increment) {
+                    height+=height*0.2;
+                    width+=width*0.2;
+                }else{
+                    height-=height*0.2;
+                    width-=width*0.2;
+                }
+                
+                $img.animate({
+                    'height': (height)+'px',
+                    'width': (width)+'px'
+                }, 200);
+            };
+            
+            var addEvents = function(){
+                
+                // Add keyup events
+                $(window).off('keyup', null, keyupEvents).keyup(keyupEvents);
+
+                // Main container
+                $('#EZView')
+                
+                // Add close Event
+                .click(function(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    close();
+                })
+                 
+                
+                // Add close Event
+                .find('.close>img').click(function(e){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    close();
+                }).end()
+                
+                // Stop propagation
+                .find('.download, img, .tools').click(function(e){
+                    // Avoid trigger remove action
+                    e.stopPropagation();
+                }).end()
+                
+                // Add back event
+                .find('.back>img').click(function(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    back();
+                }).end()
+                
+                // Add next event
+                .find('.next>img').click(function(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    next();
+                }).end()
+                
+                // Add prevent default
+                .find('.zoomin, .zoomout, .close').click(function(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                }).end()
+
+                // Add zoomin event
+                .find('.zoomin>img').click(function(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    zoom(true);
+                }).end()
+                
+                // Add zoomout event
+                .find('.zoomout>img').click(function(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    zoom();
+                }).end();
+            };
+
+            // Constructor
+            return $(this).each(function(i, el){
+                    arIndex[i] = [];
+                    arIndex[i]['href'] = $(el).attr('href') || $(el).attr('src');
+                    arIndex[i]['name'] = $.trim($(el).html());
+                    
+                    // Set index on DOM element
+                    $(el).attr('index', i);
+
+                    // Add events to each elements
+                    $(this).click(function(e){
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        index = parseInt($(e.target).attr('index'));
+                        
+                        if ($('#EZView').size()) {
+                        // Remove exist template
+                            $('#EZView').remove();
+                        }
+                        
+                        // Get href attr
+                        var href = arIndex[i]['href'],
+
+                        template = builtTemplate(index);
+
+                        appendTemplate(template);
+
+                        addEvents();
+                        
+                        // Show EZView
+                        $( "#EZView" ).show();
+
+                    });
+            });
+        }
+    }    
+);
