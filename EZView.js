@@ -270,7 +270,7 @@ $.fn.extend({
         }
 
         self.zoom = function (increment){
-             var $img   = $('.content', '#EZView'),
+             var $img   = $('[index-render='+index+']', '#EZView'),
                  height = parseInt($img.css('height')),
                  width  = parseInt($img.css('width'));
                  
@@ -402,8 +402,6 @@ $.fn.extend({
                         arIndex[index]['isRender'] = true;
                         $('[index-render='+index+']').show();
                     }
-                    
-
 
                     // Show EZView
                     $( "#EZView" ).show();
