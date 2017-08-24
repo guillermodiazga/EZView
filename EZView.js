@@ -1,3 +1,13 @@
+/*
+ * jQuery plugin to show images and pdf files preview
+ * https://github.com/guillermodiazga/EZView
+ *
+ * Copyright 2017, Guillermo Diaz
+ *
+ * Licensed under the MIT license:
+ * https://opensource.org/licenses/MIT
+ */
+
 $.fn.extend({
     EZView: function(){
             var arIndex = [];

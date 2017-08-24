@@ -1,14 +1,24 @@
 # EZView
+
+## Description
 jQuery plugin to show images and pdf files preview
 
-# Supports
+## File supports
 .pdf, .jpg, png, .jpeg, .gif
 
-# How to use
+## How to use?
 
-selector = elements should to has a 'href' or 'src' to show on preview
+[selector] = Elements should to has a 'href' or 'src' attribute to show it on preview
 
 $([selector]).EZView();
 
-Example:
+##Example:
+* Add preview event to all visible images on page
+
 $('img:visible').EZView();
+
+##Requirements
+* [jQuery](https://jquery.com/) v. 1.6+
+
+## License
+Released under the [MIT license](https://opensource.org/licenses/MIT).
