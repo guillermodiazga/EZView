@@ -104,32 +104,36 @@ $.fn.extend({
             self.showOrHideControls(index);
 
             // Content to show 
-            var content = '<h1 index-render="'+index+'" style="padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)">Unsupported preview</h1>';
+            var content = '<img index-render="'+index+'" src="'+href+'" class="content" />';
             
             // To show pdf files
             if (isPdf) {
-                content = '<embed index-render="'+index+'" height="'+$(window).height()*0.95+'" width="'+$(window).width()*0.9+
+                content = '<iframe index-render="'+index+'" height="'+$(window).height()*0.95+'" width="'+$(window).width()*0.9+
                     '" src="'+href+'" type="application/pdf" />';
             }
 
             // To show images
             if (self.isImg(index)) {
-                content = '<img index-render="'+index+'" src="'+href+'" class="content" />';
             }
 
-            return content;
+            return [content, index];
         };
 
         self.setObjectTemplate = function(object){
 
             // Append object to body
-             $EZView.find('.object').append(object)
+             $EZView.find('.object').append(object[0])
 
              // Stop propagation
             .find('.download, img').click(function(e){
                 // Avoid trigger remove action
                 e.stopPropagation();
             });
+            
+            $('[index-render='+object[1]+']').on( "error",function() {
+                $(this).replaceWith('<h1 index-render="'+index+'" style="padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)">Unsupported preview</h1>');
+            });
+            
 
             self.setStyles();
         };
@@ -353,11 +357,26 @@ $.fn.extend({
         self.next = function(){
             var newIndex = index+1;
 
+            // Check if the element exists
+            if(!$('[index='+newIndex+']:visible').length && newIndex < arIndex.length){
+                $('[index-render='+index+']').hide();
+                index += 1;
+                return self.next();
+            }
+
            self.goTo(newIndex);
         }
 
         self.back = function(){
             var newIndex = index-1;
+            
+            // Check if the element exists
+            if(!$('[index='+newIndex+']:visible').length  && newIndex > 0){
+                $('[index-render='+index+']').hide();
+                index -= 1;
+                return self.back();
+            }
+            
             self.goTo(newIndex);
         };
 
@@ -379,8 +398,30 @@ $.fn.extend({
                 index = newIndex;
             }
         };
+        
+        self.init = function(e){
+            //Create main container if not exists
+            self.createContainer();
 
-        // Constructor
+            index = parseInt($(e.target).attr('index'));
+            self.showOrHideControls(index);
+
+            if (arIndex[index]['isRender']) {
+                $('[index-render='+index+']').show();
+            }else{
+                self.setObjectTemplate(self.builtObjectTemplate(index));
+                arIndex[index]['isRender'] = true;
+                $('[index-render='+index+']').show();
+            }
+
+            // Add keyup events
+            $(window).off('keyup', null, self.keyupEvents).keyup(self.keyupEvents);
+
+            // Show EZView
+            $EZView.show(200);
+        };
+
+        // Iterate each element and set the click event
         return $(this).each(function(i, el){
             var $el = $(el);
 
@@ -400,28 +441,11 @@ $.fn.extend({
             $(this).click(function(e){
                 e.preventDefault();
                 e.stopPropagation();
-                self.createContainer();
 
-                index = parseInt($(e.target).attr('index'));
-                self.showOrHideControls(index);
+                self.init(e);
 
-                if (arIndex[index]['isRender']) {
-                    $('[index-render='+index+']').show();
-                }else{
-                    self.setObjectTemplate(self.builtObjectTemplate(index));
-                    arIndex[index]['isRender'] = true;
-                    $('[index-render='+index+']').show();
-                }
-
-                // Add keyup events
-                $(window).off('keyup', null, self.keyupEvents).keyup(self.keyupEvents);
-
-                // Show EZView
-                $EZView.show(200);
-
-                });
             });
-        }
+        });
     }
-);
+});
 
