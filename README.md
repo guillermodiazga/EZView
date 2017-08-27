@@ -20,5 +20,8 @@ jQuery plugin to show images and pdf files preview
 ## Requirements
 * [jQuery](https://jquery.com/) v. 1.6+
 
+## Optionals
+jQuery draggable pluggin to allow move the image when is zoomin
+
 ## License
 Released under the [MIT license](https://opensource.org/licenses/MIT).

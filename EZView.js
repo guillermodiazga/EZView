@@ -40,18 +40,13 @@ $.fn.EZView = function(){
                         '<img src="'+icons.close+'"/></a>'+
                 '</div>',
 
-                container = 
-                '<table align="center" style="height:100%; width:100%"><tr>'+
-                    '<td width="10%" align="center" valign="middle">'+
+                container = '<div class="object"/>'+
                         '<a class="back EZViewHighlight"><img src="'+icons.back+'" alt="Back" /></a>'+
-                    '</td>'+
-                    '<td width="80%" align="center" valign="middle" class="object">'+tools+'</td>'+
-                    '<td width="10%" align="center" valign="middle">'+
                         '<a class="next EZViewHighlight"><img src="'+icons.next+'" alt="Next" /></a>'+
-                    '</td>'+
-                '</tr></table>',
+                        tools
+                ,
 
-                template = '<div id="EZView" class="hide container">'+container+'</div>';
+                template = '<div id="EZView" class="hide container" style="display: flex; align-items: center; justify-content: center">'+container+'</div>';
 
             $('body').append(template);
 
@@ -62,10 +57,12 @@ $.fn.EZView = function(){
     };
 
     self.isImg = function(imgIndex){
-         var href = arIndex[imgIndex]['href'],
+        /*var href = arIndex[imgIndex]['href'],
              name = arIndex[imgIndex]['name'];
 
         return href.match('(\.jpg|\.png|\.jpeg|\.gif)$');
+        */
+        return arIndex[imgIndex]['isImg'];
     };
 
     self.showOrHideControls = function(imgIndex){
@@ -100,8 +97,6 @@ $.fn.EZView = function(){
             name = arIndex[index]['name'],
             isPdf = href.match('.pdf');
 
-        self.showOrHideControls(index);
-
         // Content to show 
         var content = '<img index-render="'+index+'" src="'+href+'" class="content" />';
         
@@ -109,10 +104,8 @@ $.fn.EZView = function(){
         if (isPdf) {
             content = '<iframe index-render="'+index+'" height="'+$(window).height()*0.95+'" width="'+$(window).width()*0.9+
                 '" src="'+href+'" type="application/pdf" />';
-        }
 
-        // To show images
-        if (self.isImg(index)) {
+            arIndex[index]['isImg'] = false;
         }
 
         return [content, index];
@@ -132,11 +125,13 @@ $.fn.EZView = function(){
         // If no and image show unsuported msg
         $('[index-render='+object[1]+']').on( "error",function() {
             $(this).replaceWith('<h1 index-render="'+index+'" style="padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)">Unsupported preview</h1>');
-            
+            arIndex[index]['isImg'] = false;
         });
         
 
         self.setStyles();
+        
+        self.showOrHideControls(object[1]);
     };
 
     self.setStyles = function(){
@@ -431,6 +426,7 @@ $.fn.EZView = function(){
         arIndex[i]['href']     = $el.attr('href')   || $el.attr('src');
         arIndex[i]['name']     = $.trim($el.html()).substring(0,30) || $el.attr('alt').substring(0,30) || '';
         arIndex[i]['isRender'] = false;
+        arIndex[i]['isImg']    = true;
 
         // Set index on each element
         $el.attr('index', i);
