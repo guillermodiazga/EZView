@@ -28,16 +28,18 @@ $.fn.EZView = function(){
         if (!$('#EZView').length) {
 
             var tools = 
-                '<div class="tools">'+
+                '<div class="tools-container">'+
                     '<spam class="name"><b></b></spam>'+
-                    '<a class="download EZViewHighlight" download href="">'+
-                    '<img src="'+icons.download+'" alt="Download" /></a>'+
-                    '<a class="zoomin EZViewHighlight" href="">'+
-                        '<img src="'+icons.zoomin+'" alt="Download" /></a>'+
+                    '<spam class="tools">'+
+                        '<a class="download EZViewHighlight" download href="">'+
+                        '<img src="'+icons.download+'" alt="Download" /></a>'+
+                        '<a class="zoomin EZViewHighlight" href="">'+
+                        '<img src="'+icons.zoomin+'" alt="Zoomin" /></a>'+
                         '<a class="zoomout EZViewHighlight" href="">'+
-                        '<img src="'+icons.zoomout+'" alt="Download" /></a>'+
-                        '<a class="close EZViewHighlight" href="">'+
-                        '<img src="'+icons.close+'"/></a>'+
+                        '<img src="'+icons.zoomout+'" alt="Zoomout" /></a>'+
+                    '</spam>'+
+                    '<a class="close EZViewHighlight" href="">'+
+                    '<img src="'+icons.close+'"/></a>'+
                 '</div>',
 
                 container = '<div class="object"/>'+
@@ -57,11 +59,6 @@ $.fn.EZView = function(){
     };
 
     self.isImg = function(imgIndex){
-        /*var href = arIndex[imgIndex]['href'],
-             name = arIndex[imgIndex]['name'];
-
-        return href.match('(\.jpg|\.png|\.jpeg|\.gif)$');
-        */
         return arIndex[imgIndex]['isImg'];
     };
 
@@ -93,17 +90,17 @@ $.fn.EZView = function(){
     };
 
     self.builtObjectTemplate = function(index){
-        var href = arIndex[index]['href'],
+        var src = arIndex[index]['href'],
             name = arIndex[index]['name'],
-            isPdf = href.match('.pdf');
+            isPdf = src.match('.pdf');
 
         // Content to show 
-        var content = '<img index-render="'+index+'" src="'+href+'" class="content" />';
+        var content = '<img index-render="'+index+'" src="'+src+'" class="content" />';
         
         // To show pdf files
         if (isPdf) {
-            content = '<iframe index-render="'+index+'" height="'+$(window).height()*0.95+'" width="'+$(window).width()*0.9+
-                '" src="'+href+'" type="application/pdf" />';
+            content = '<iframe frameborder="0" index-render="'+index+'" height="'+$(window).height()*0.95+'" width="'+$(window).width()*0.9+
+                '" src="'+src+'" type="application/pdf"><p>Your browser does not support iframes.</p><iframe/>';
 
             arIndex[index]['isImg'] = false;
         }
@@ -148,17 +145,15 @@ $.fn.EZView = function(){
             'aling-items':      'center',
             'margin':           'auto',
         })
-        .find('table td').css({
-            'vertical-align': 'middle',
-        }).end()
         .find('.content').css({
             'max-width':  $(window).width()*0.7,
             'max-height': $(window).height()*0.9,
             'z-index':    '10001',
         }).end()
         .find('.name').css({
-            'left':     '0',
-            'position': 'fixed',
+            'display': 'flex',
+            'align-items': 'center',
+            'justify-content': 'center',
             'padding':  '7px',
         }).end()
         .find('.close>img').css({
@@ -176,7 +171,7 @@ $.fn.EZView = function(){
             'right': '0',
             'position': 'fixed',
         }).end()
-        .find('.tools').css({
+        .find('.tools-container').css({
             'background-color': 'rgba(255,255,255,0.5)',
             'height':           '35px',
             'width':            '100%',
@@ -187,8 +182,13 @@ $.fn.EZView = function(){
             'padding-top':       '0px',
             'z-index':          '100000'
         }).end()
-        .find('.tools>a').css({
+        .find('.tools-container>a').css({
             'margin' : '10px',
+        }).end()
+        .find('.tools').css({
+            'top':      '0',
+            'left':    '0',
+            'position': 'fixed',
         }).end()
         .find('.EZViewHighlight>img').css({
             'padding': '10px',
