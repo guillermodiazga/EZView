@@ -8,9 +8,15 @@
  * Licensed under the MIT license:
  * https://opensource.org/licenses/MIT
  */
+var $ = jQuery;
+
+if (!$){
+    window.console.log('jQuery is requiered');
+}
 
 $.fn.EZView = function(){
     var self    = this,
+        iFramesSupported = true,
         arIndex = [],
         index   = 0,
         icons   = {
@@ -41,13 +47,10 @@ $.fn.EZView = function(){
                     '<a class="close EZViewHighlight" href="">'+
                     '<img src="'+icons.close+'"/></a>'+
                 '</div>',
-
                 container = '<div class="object"/>'+
                         '<a class="back EZViewHighlight"><img src="'+icons.back+'" alt="Back" /></a>'+
                         '<a class="next EZViewHighlight"><img src="'+icons.next+'" alt="Next" /></a>'+
-                        tools
-                ,
-
+                        tools,
                 template = '<div id="EZView" class="hide container" style="display: flex; align-items: center; justify-content: center">'+container+'</div>';
 
             $('body').append(template);
@@ -59,12 +62,12 @@ $.fn.EZView = function(){
     };
 
     self.isImg = function(imgIndex){
-        return arIndex[imgIndex]['isImg'];
+        return arIndex[imgIndex].isImg;
     };
 
     self.showOrHideControls = function(imgIndex){
-        var href = arIndex[imgIndex]['href'],
-            name = arIndex[imgIndex]['name'];
+        var href = arIndex[imgIndex].href,
+            name = arIndex[imgIndex].name;
 
        if (self.isImg(imgIndex)) {
             $('.zoomin, .zoomout').fadeIn(200);
@@ -90,8 +93,7 @@ $.fn.EZView = function(){
     };
 
     self.builtObjectTemplate = function(index){
-        var src = arIndex[index]['href'],
-            name = arIndex[index]['name'],
+        var src   = arIndex[index].href,
             isPdf = src.match('.pdf');
 
         // Content to show 
@@ -100,9 +102,10 @@ $.fn.EZView = function(){
         // To show pdf files
         if (isPdf) {
             content = '<iframe frameborder="0" index-render="'+index+'" height="'+$(window).height()*0.95+'" width="'+$(window).width()*0.9+
-                '" src="'+src+'" type="application/pdf"><p>Your browser does not support iframes.</p><iframe/>';
+                '" src="'+src+'" type="application/pdf"><p>Your browser does not support iframes.</p>'+
+                '<script type="text/javascript">iFramesSupported = false; alert(iFramesSupported)</script><iframe/>';
 
-            arIndex[index]['isImg'] = false;
+            arIndex[index].isImg = false;
         }
 
         return [content, index];
@@ -122,7 +125,7 @@ $.fn.EZView = function(){
         // If no and image show unsuported msg
         $('[index-render='+object[1]+']').on( "error",function() {
             $(this).replaceWith('<h1 index-render="'+index+'" style="padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)">Unsupported preview</h1>');
-            arIndex[index]['isImg'] = false;
+            arIndex[index].isImg = false;
         });
         
 
@@ -203,14 +206,14 @@ $.fn.EZView = function(){
                     'border-radius':    '100%',
                     'background-color': 'rgba(255,255,255,0.5)',
                     'z-index':          '100000'
-                })
+                });
             },
             function(){
                 $(this).css({
                     'background-color': '',
                     'border-radius':    '',
-                })
-            },
+                });
+            }
         );
     };
 
@@ -243,15 +246,15 @@ $.fn.EZView = function(){
             self.zoom();
             break;
         }
-    }
+    };
 
-    self.close = function (e){
+    self.close = function (){
         // Hide EZView elements
         $EZView.hide(200).find('[index-render]').hide();
 
         // Remove keyup events
         $(window).off('keyup', null, self.keyupEvents);
-    }
+    };
 
     self.zoom = function (increment){
         if (!self.isImg(index)) {
@@ -266,7 +269,7 @@ $.fn.EZView = function(){
         $img.css({
             'max-width': '',
             'max-height': '',
-        })
+        });
 
         // Enable drag
         if ($.fn.draggable) {
@@ -361,7 +364,7 @@ $.fn.EZView = function(){
         }
 
        self.goTo(newIndex);
-    }
+    };
 
     self.back = function(){
         var newIndex = index-1;
@@ -380,7 +383,7 @@ $.fn.EZView = function(){
 
         if (arIndex[newIndex]) {
 
-            if (arIndex[newIndex]['isRender']) {
+            if (arIndex[newIndex].isRender) {
                 $('[index-render='+index+']').slideUp();
                 $('[index-render='+newIndex+']').slideDown();
                 self.showOrHideControls(newIndex);
@@ -388,7 +391,7 @@ $.fn.EZView = function(){
                 $('[index-render='+index+']').slideUp();
                 self.setObjectTemplate(self.builtObjectTemplate(newIndex));
                 $('[index-render='+newIndex+']').hide().slideDown();
-                arIndex[newIndex]['isRender'] = true;
+                arIndex[newIndex].isRender = true;
             }
 
             index = newIndex;
@@ -402,11 +405,11 @@ $.fn.EZView = function(){
         index = parseInt($(e.target).attr('index'));
         self.showOrHideControls(index);
 
-        if (arIndex[index]['isRender']) {
+        if (arIndex[index].isRender) {
             $('[index-render='+index+']').show();
         }else{
             self.setObjectTemplate(self.builtObjectTemplate(index));
-            arIndex[index]['isRender'] = true;
+            arIndex[index].isRender = true;
             $('[index-render='+index+']').show();
         }
 
@@ -422,17 +425,17 @@ $.fn.EZView = function(){
         var $el = $(el);
 
         // Get data requiered to navigate between elements
-        arIndex[i]             = [];
-        arIndex[i]['href']     = $el.attr('href')   || $el.attr('src');
-        arIndex[i]['name']     = $.trim($el.html()).substring(0,30) || $el.attr('alt').substring(0,30) || '';
-        arIndex[i]['isRender'] = false;
-        arIndex[i]['isImg']    = true;
+        arIndex[i]          = [];
+        arIndex[i].href     = $el.attr('href')   || $el.attr('src');
+        arIndex[i].name     = $.trim($el.html()).substring(0,30) || $el.attr('alt').substring(0,30) || '';
+        arIndex[i].isRender = false;
+        arIndex[i].isImg    = true;
 
         // Set index on each element
         $el.attr('index', i);
 
         // Add cursor pointer
-        $el.css({cursor: 'pointer'})
+        $el.css({cursor: 'pointer'});
 
         // Add events to each elements
         $(this).click(function(e){
@@ -443,6 +446,5 @@ $.fn.EZView = function(){
 
         });
     });
-}
-
+};
 
