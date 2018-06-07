@@ -3,6 +3,13 @@
 ## Description
 jQuery plugin to show images and pdf files preview
 
+EZView is a small, unobtrusive, convenient jQuery image & PDF viewer plugin that opens and displays image and PDF files in a fullscreen modal popup.
+
+Features image zoom, image pan and prev/next navigation. It means that the visitors are able to switch between images and PDFs without the need of clicking the files one by one.
+
+## To see how to use and demo:
+https://www.jqueryscript.net/other/Image-PDF-Viewer-EZView.html
+
 ## File supports
 .pdf, .jpg, png, .jpeg, .gif
 
