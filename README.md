@@ -7,7 +7,10 @@ EZView is a small, unobtrusive, convenient jQuery image & PDF viewer plugin that
 
 Features image zoom, image pan and prev/next navigation. It means that the visitors are able to switch between images and PDFs without the need of clicking the files one by one.
 
-## To see how to use and demo:
+## Demo:
+https://guillermodiazga.github.io/EZView/
+
+## To see how to use:
 https://www.jqueryscript.net/other/Image-PDF-Viewer-EZView.html
 
 ## File supports
