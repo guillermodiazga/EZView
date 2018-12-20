@@ -11,7 +11,7 @@
 var $ = jQuery;
 
 if (!$) {
-    window.console.error('jQuery is requiered');
+    window.console.error('jQuery is required');
 }
 
 $.fn.EZView = function() {
