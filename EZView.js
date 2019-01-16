@@ -11,7 +11,7 @@
 var $ = jQuery;
 
 if (!$) {
-    window.console.error('jQuery is requiered');
+    window.console.error('jQuery is required');
 }
 
 $.fn.EZView =  function(galleryName = 'default') {
@@ -81,7 +81,23 @@ $.fn.EZView =  function(galleryName = 'default') {
         });
         
     }
+    
+    self.returnImageToOriginalMeasures = function () {
 
+        if (!self.isImg(self.index[galleryName])) {
+            return;
+        }
+
+        var $img = $('[index-render=' + self.index[galleryName] + ']', '#EZView'+galleryName);
+        var hasOriginalAttributesDefined = $img.attr("original-height") && $img.attr("original-width");
+        if (hasOriginalAttributesDefined) {
+            $img.animate({
+                'height': $img.attr("original-height") + 'px',
+                'width': $img.attr("original-width") + 'px'
+            }, 200);
+        }
+    };
+    
     /**
      * Methods Definition:
      */
@@ -336,7 +352,15 @@ $.fn.EZView =  function(galleryName = 'default') {
          var $img   = $('[index-render='+galleryName+self.index[galleryName]+']', '#EZView'+galleryName),
              height = parseInt($img.css('height')),
              width  = parseInt($img.css('width'));
-
+        
+        // allow the image to return to its original measures when is closed or the focus is lost
+        if (!$img.attr("original-height")) {
+            $img.attr("original-height", height);
+        }
+        if (!$img.attr("original-width")) {
+            $img.attr("original-width", width);
+        }
+        
         // Avoid lose imng proportions on zoom in
         $img.css({
             'max-width': '',
@@ -374,6 +398,7 @@ $.fn.EZView =  function(galleryName = 'default') {
             e.stopPropagation();
             e.preventDefault();
 
+            self.returnImageToOriginalMeasures();
             self.close();
         })
 
@@ -382,6 +407,7 @@ $.fn.EZView =  function(galleryName = 'default') {
             e.preventDefault();
             e.stopPropagation();
             self.close();
+            self.returnImageToOriginalMeasures();
         }).end()
 
         // Stop propagation
@@ -395,6 +421,7 @@ $.fn.EZView =  function(galleryName = 'default') {
             e.stopPropagation();
             e.preventDefault();
             self.back();
+            self.returnImageToOriginalMeasures();
         }).end()
 
         // Add next event
@@ -402,6 +429,7 @@ $.fn.EZView =  function(galleryName = 'default') {
             e.stopPropagation();
             e.preventDefault();
             self.next();
+            self.returnImageToOriginalMeasures();
         }).end()
 
         // Add prevent default
@@ -426,10 +454,11 @@ $.fn.EZView =  function(galleryName = 'default') {
     };
 
     self.next = function() {
+
         var newIndex = self.index[galleryName]+1;
 
         // Check if the element exists
-        if(!$('[index='+newIndex+']:visible').length && newIndex < self.arIndex[galleryName].length) {
+        if(!$('[index=' + newIndex + ']:visible').length && newIndex < self.arIndex[galleryName].length) {
             
             $('[index-render='+galleryName+self.index[galleryName]+']').hide();
             
@@ -442,11 +471,11 @@ $.fn.EZView =  function(galleryName = 'default') {
     };
 
     self.back = function() {
-        var newIndex = index[galleryName]-1;
+        var newIndex = self.index[galleryName]-1;
         
         // Check if the element exists
-        if(!$('[index='+galleryName+newIndex+']:visible').length  && newIndex > 0) {
-            $('[index-render='+galleryName+self.index[galleryName]+']').hide();
+        if(!$('[index=' + galleryName + newIndex +']:visible').length  && newIndex > 0) {
+            $('[index-render=' + galleryName + self.index[galleryName] + ']').hide();
             index[galleryName] -= 1;
             return self.back();
         }
@@ -459,13 +488,13 @@ $.fn.EZView =  function(galleryName = 'default') {
         if (self.arIndex[galleryName][newIndex]) {
 
             if (self.arIndex[galleryName][newIndex].isRender) {
-                $('[index-render='+galleryName+self.index[galleryName]+']').slideUp();
-                $('[index-render='+galleryName+newIndex+']').slideDown();
+                $('[index-render=' + galleryName + self.index[galleryName]+']').slideUp();
+                $('[index-render=' + galleryName + newIndex + ']').slideDown();
                 self.showOrHideControls(newIndex);
             }else{
-                $('[index-render='+galleryName+self.index[galleryName]+']').slideUp();
+                $('[index-render=' + galleryName+self.index[galleryName] + ']').slideUp();
                 self.setObjectTemplate(self.builtObjectTemplate(newIndex));
-                $('[index-render='+galleryName+newIndex+']').hide().slideDown();
+                $('[index-render=' + galleryName + newIndex + ']').hide().slideDown();
                 self.arIndex[galleryName][newIndex].isRender = true;
             }
 
