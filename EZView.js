@@ -81,7 +81,7 @@ $.fn.EZView =  function(galleryName = 'default') {
         });
         
     }
-    
+
     self.returnImageToOriginalMeasures = function () {
 
         if (!self.isImg(self.index[galleryName])) {
@@ -174,22 +174,22 @@ $.fn.EZView =  function(galleryName = 'default') {
     };
 
     self.builtObjectTemplate = function(index) {
-        var src   = self.arIndex[galleryName][self.index[galleryName]].href,
+        var src   = self.arIndex[galleryName][index].href,
             isPdf = src.match('.pdf');
 
         // Content to show 
-        var content = '<img index-render="'+galleryName+self.index[galleryName]+'" src="'+src+'" class="content" />';
+        var content = '<img index-render="' + galleryName + index + '" src="'+src+'" class="content" />';
 
         // To show pdf files
         if (isPdf) {
-            content = '<iframe frameborder="0" index-render="'+galleryName+self.index[galleryName]+'" height="'+$(window).height()*0.95+'" width="'+$(window).width()*0.9+
-                '" src="'+src+'" type="application/pdf"><p>Your browser does not support iframes.</p>'+
+            content = '<iframe class="content" frameborder="0" index-render="' + galleryName + index + '" height="' + $(window).height()*0.95+'" width="'+$(window).width()*0.9+
+                '" src="' + src + '" type="application/pdf"><p>Your browser does not support iframes.</p>'+
                 '<script type="text/javascript">iFramesSupported = false; alert(iFramesSupported)</script><iframe/>';
 
-            self.arIndex[galleryName][self.index[galleryName]].isImg = false;
+            self.arIndex[galleryName][index].isImg = false;
         }
 
-        return [content, self.index[galleryName]];
+        return [content, index];
     };
 
     /*
@@ -202,18 +202,18 @@ $.fn.EZView =  function(galleryName = 'default') {
         // Append object to body
         self.$EZView.find('.object-container')
 
-        // Add img in container
-        .append(contentHTML)
+            // Add img in container
+            .append(contentHTML)
 
-         // Stop propagation
-        .find('.download, img').click(function(e) {
-            // Avoid trigger remove action
-            e.stopPropagation();
-        });
+             // Stop propagation
+            .find('.download, img').click(function(e) {
+                // Avoid trigger remove action
+                e.stopPropagation();
+            });
         
         // Check If href isn't exists and show unsuported msg
         $('[index-render=' + galleryName + newIndex + ']').on( "error",function() {
-            $(this).replaceWith('<h1 index-render="'+galleryName+self.index[galleryName]+'" style="padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)">Unsupported preview</h1>');
+            $(this).replaceWith('<h1 index-render="' + galleryName + self.index[galleryName] + '" style="padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)">Unsupported preview</h1>');
             self.arIndex[galleryName][self.index[galleryName]].isImg = false;
         });
 
@@ -338,7 +338,8 @@ $.fn.EZView =  function(galleryName = 'default') {
 
     self.close = function () {
         // Hide EZView elements
-        self.$EZView.hide(200).find('[[galleryName]-render]').hide();
+        self.$EZView.hide(200)
+        //.find('[[galleryName]-render]').hide();
 
         // Remove keyup events
         $(window).off('keyup', null, self.keyupEvents);
@@ -349,7 +350,7 @@ $.fn.EZView =  function(galleryName = 'default') {
             return;
         }
 
-         var $img   = $('[index-render='+galleryName+self.index[galleryName]+']', '#EZView'+galleryName),
+         var $img   = $('[index-render=' + galleryName + self.index[galleryName] + ']', '#EZView' + galleryName),
              height = parseInt($img.css('height')),
              width  = parseInt($img.css('width'));
         
@@ -455,15 +456,19 @@ $.fn.EZView =  function(galleryName = 'default') {
 
     self.next = function() {
 
-        var newIndex = self.index[galleryName]+1;
+        var newIndex = self.index[galleryName] + 1;
+        
+console.log(self.index[galleryName])
+console.log(newIndex)
 
         // Check if the element exists
         if(!$('[index=' + newIndex + ']:visible').length && newIndex < self.arIndex[galleryName].length) {
             
-            $('[index-render='+galleryName+self.index[galleryName]+']').hide();
+            $('[index-render=' + galleryName + self.index[galleryName] + ']').hide();
             
             self.index[galleryName] += 1;
             
+            // Start again from firts image
             return self.next();
         }
 
@@ -474,9 +479,12 @@ $.fn.EZView =  function(galleryName = 'default') {
         var newIndex = self.index[galleryName]-1;
         
         // Check if the element exists
-        if(!$('[index=' + galleryName + newIndex +']:visible').length  && newIndex > 0) {
+        if(!$('[index=' + galleryName + newIndex + ']:visible').length  && newIndex > 0) {
+            
             $('[index-render=' + galleryName + self.index[galleryName] + ']').hide();
-            index[galleryName] -= 1;
+            
+            self.index[galleryName] -= 1;
+
             return self.back();
         }
         
@@ -484,17 +492,26 @@ $.fn.EZView =  function(galleryName = 'default') {
     };
 
     self.goTo = function(newIndex) {
-
+        
+        $('.content', self.$EZView).hide();
+        
         if (self.arIndex[galleryName][newIndex]) {
 
             if (self.arIndex[galleryName][newIndex].isRender) {
+                
                 $('[index-render=' + galleryName + self.index[galleryName]+']').slideUp();
+                
                 $('[index-render=' + galleryName + newIndex + ']').slideDown();
+                
                 self.showOrHideControls(newIndex);
             }else{
-                $('[index-render=' + galleryName+self.index[galleryName] + ']').slideUp();
+                
+                $('[index-render=' + galleryName + self.index[galleryName] + ']').slideUp();
+                
                 self.setObjectTemplate(self.builtObjectTemplate(newIndex));
-                $('[index-render=' + galleryName + newIndex + ']').hide().slideDown();
+                
+                $('[index-render=' + galleryName + newIndex + ']').slideDown();
+
                 self.arIndex[galleryName][newIndex].isRender = true;
             }
 
@@ -509,6 +526,8 @@ $.fn.EZView =  function(galleryName = 'default') {
         self.index[galleryName] = parseInt($(e.target).attr('index'));
 
         self.showOrHideControls(self.index[galleryName]);
+        
+        $('.content', self.$EZView).hide();
 
         if (self.arIndex[galleryName][self.index[galleryName]].isRender) {
             $('[index-render='+galleryName+self.index[galleryName]+']').show();
