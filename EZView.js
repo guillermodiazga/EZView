@@ -14,9 +14,13 @@ if (!$) {
     window.console.error('jQuery is required');
 }
 
-$.fn.EZView =  function(galleryName = 'default') {
+$.fn.EZView =  function(galleryName) {
     var self = this;
 
+    /**
+     * Initial actions
+     * @return void
+     */
     self.constructor = function() {
 
         var self              = this;
@@ -34,16 +38,22 @@ $.fn.EZView =  function(galleryName = 'default') {
             'close':    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjdGODJCNTUzMDZBMzExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjdGODJCNTUyMDZBMzExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PshQd58AAAB+SURBVHjarJTdCcAgDIRDJ3AU95+io7hBmkAsFuWSwgn3oudnflRRVbHRTcN0m5rPIbknvL6nx9wL0RCELZDpH8H4QCDsAFlhx4UNBiDTmxpayVM8LY1aiqHnqReLmTZDfnQGdvQS1qCnRik2pf20C8l8IrRHy/lGWB/bI8AA4oOVMKhFFb8AAAAASUVORK5CYII=',
         };
 
+        // If we have gallery name set it otherwise set an default name
+        galleryName = galleryName || 'EZView' + (parseInt($('.EZView').length) + 1);
+        
+        // Create container by gallery
+        self.createContainer();
+    
         // Init index by gallery
         self.index = [];
         self.index[galleryName] = 0;
 
-        // Destroy an previous existing container
-        $('#EZView'+galleryName).remove();
+        // Hide an previous existing container
+        $('#EZView'+galleryName).hide();
 
         self.arIndex = [];
         self.arIndex[galleryName] = [];
-
+        
         // Iterate each element and set the click event
         $(this).each(function(i, el) {
             var $el = $(el);
@@ -82,25 +92,26 @@ $.fn.EZView =  function(galleryName = 'default') {
         
     }
 
-    self.returnImageToOriginalMeasures = function () {
-
-        if (!self.isImg(self.index[galleryName])) {
-            return;
-        }
-
-        var $img = $('[index-render=' + self.index[galleryName] + ']', '#EZView'+galleryName);
-        var hasOriginalAttributesDefined = $img.attr("original-height") && $img.attr("original-width");
-        if (hasOriginalAttributesDefined) {
-            $img.animate({
-                'height': $img.attr("original-height") + 'px',
-                'width': $img.attr("original-width") + 'px'
-            }, 200);
-        }
-    };
-    
     /**
      * Methods Definition:
      */
+
+    self.returnImageToOriginalMeasures = function (index) {
+
+        if (!self.isImg(index)) {
+            return;
+        }
+
+        var $img = $('[index-render=' + galleryName + index + ']', self.$EZView);
+        var hasOriginalAttributesDefined = self.arIndex[galleryName][index]['original-height'];
+
+        if (hasOriginalAttributesDefined) {
+            $img.animate({
+                'height':  self.arIndex[galleryName][index]['original-height'] + 'px',
+                'width':  self.arIndex[galleryName][index]['original-width'] + 'px'
+            }, 200);
+        }
+    };
     
     /**
      * Create the gallery container
@@ -114,34 +125,39 @@ $.fn.EZView =  function(galleryName = 'default') {
                 '<div class="tools-container">'+
                     '<spam class="name"><b></b></spam>'+
                     '<spam class="tools">'+
-                        '<a class="download EZViewHighlight" download href="">'+
-                        '<img src="'+self.icons.download+'" alt="Download" /></a>'+
+                        '<a class="download EZViewHighlight" download+"FileName" target="_blank">'+
+                        '<img src="' + self.icons.download + '" alt="Download" /></a>'+
                         '<a class="zoomin EZViewHighlight" href="">'+
-                        '<img src="'+self.icons.zoomin+'" alt="Zoomin" /></a>'+
+                        '<img src="' + self.icons.zoomin + '" alt="Zoomin" /></a>'+
                         '<a class="zoomout EZViewHighlight" href="">'+
-                        '<img src="'+self.icons.zoomout+'" alt="Zoomout" /></a>'+
-                    '</spam>'+
+                        '<img src="' + self.icons.zoomout + '" alt="Zoomout" /></a>'+
+                    '</spam>' +
                     '<a class="close EZViewHighlight" href="">'+
-                    '<img src="'+self.icons.close+'"/></a>'+
+                    '<img src="' + self.icons.close + '"/></a>'+
                 '</div>',
 
-                container = '<div class="object-container"/>'+
-                        '<a class="back EZViewHighlight"><img src="'+self.icons.back+'" alt="Back" /></a>'+
-                        '<a class="next EZViewHighlight"><img src="'+self.icons.next+'" alt="Next" /></a>'+
+                container = '<div class="object-container"/>' +
+                        '<a class="back EZViewHighlight"><img src="' + self.icons.back + '" alt="Back" /></a>'+
+                        '<a class="next EZViewHighlight"><img src="' + self.icons.next + '" alt="Next" /></a>'+
                         tools,
 
                 template = '<div id="EZView' + galleryName + 
-                           '" class="hide container" style="display: flex; align-items: center; justify-content: center">'+
-                           container+'</div>';
+                           '" class="EZView container hide" style="display: flex; align-items: center; justify-content: center">'+
+                           container + '</div>';
 
             $('body').append(template);
 
-            self.$EZView = $('#EZView'+ galleryName);
+            self.$EZView = $('#EZView' + galleryName);
 
             self.addEvents();
         }
     };
 
+    /**
+     * Check if the index belongs to any img
+     * @param  {int}  imgIndex index to be checked
+     * @return {Boolean}       To know if the index belongs to any img
+     */
     self.isImg = function(imgIndex) {
         return self.arIndex[galleryName][imgIndex].isImg;
     };
@@ -173,23 +189,23 @@ $.fn.EZView =  function(galleryName = 'default') {
         }
     };
 
-    self.builtObjectTemplate = function(index) {
-        var src   = self.arIndex[galleryName][index].href,
+    self.builtObjectTemplate = function(imgIndex) {
+        var src   = self.arIndex[galleryName][imgIndex].href,
             isPdf = src.match('.pdf');
 
         // Content to show 
-        var content = '<img index-render="' + galleryName + index + '" src="'+src+'" class="content" />';
+        var content = '<img index-render="' + galleryName + imgIndex + '" src="'+src+'" class="content" />';
 
         // To show pdf files
         if (isPdf) {
-            content = '<iframe class="content" frameborder="0" index-render="' + galleryName + index + '" height="' + $(window).height()*0.95+'" width="'+$(window).width()*0.9+
+            content = '<iframe class="content" frameborder="0" index-render="' + galleryName + imgIndex + '" height="' + $(window).height()*0.95+'" width="'+$(window).width()*0.9+
                 '" src="' + src + '" type="application/pdf"><p>Your browser does not support iframes.</p>'+
                 '<script type="text/javascript">iFramesSupported = false; alert(iFramesSupported)</script><iframe/>';
 
-            self.arIndex[galleryName][index].isImg = false;
+            self.arIndex[galleryName][imgIndex].isImg = false;
         }
 
-        return [content, index];
+        return [content, imgIndex];
     };
 
     /*
@@ -213,7 +229,10 @@ $.fn.EZView =  function(galleryName = 'default') {
         
         // Check If href isn't exists and show unsuported msg
         $('[index-render=' + galleryName + newIndex + ']').on( "error",function() {
-            $(this).replaceWith('<h1 index-render="' + galleryName + self.index[galleryName] + '" style="padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)">Unsupported preview</h1>');
+            var style = 'padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)';
+            
+            $(this).replaceWith('<h1 index-render="' + galleryName + self.index[galleryName] + '" style="' + style + '">Unsupported preview</h1>');
+
             self.arIndex[galleryName][self.index[galleryName]].isImg = false;
         });
 
@@ -305,6 +324,11 @@ $.fn.EZView =  function(galleryName = 'default') {
         );
     };
 
+    /**
+     * Set keyboard events
+     * @param  {object} e Window object
+     * @return void
+     */
     self.keyupEvents = function(e) {
         var keyCode = e.keyCode;
 
@@ -324,7 +348,7 @@ $.fn.EZView =  function(galleryName = 'default') {
             self.back();
             break;
 
-        // zoomin
+        // zoomn
         case 107:
             self.zoom(true);
             break;
@@ -335,34 +359,45 @@ $.fn.EZView =  function(galleryName = 'default') {
             break;
         }
     };
-
+    
+    /**
+     * Hide gallery
+     * @return void
+     */
     self.close = function () {
         // Hide EZView elements
         self.$EZView.hide(200)
-        //.find('[[galleryName]-render]').hide();
+        
+        self.returnImageToOriginalMeasures(self.index[galleryName]);
 
         // Remove keyup events
         $(window).off('keyup', null, self.keyupEvents);
     };
 
+    /**
+     * zoom in or out on current img
+     * @param  {boolean} increment When is true do zoom in
+     * @return void
+     */
     self.zoom = function (increment) {
         if (!self.isImg(self.index[galleryName])) {
             return;
         }
 
-         var $img   = $('[index-render=' + galleryName + self.index[galleryName] + ']', '#EZView' + galleryName),
+         var $img   = $('[index-render=' + galleryName + self.index[galleryName] + ']', self.$EZView),
              height = parseInt($img.css('height')),
              width  = parseInt($img.css('width'));
         
-        // allow the image to return to its original measures when is closed or the focus is lost
-        if (!$img.attr("original-height")) {
-            $img.attr("original-height", height);
+        // Allow the image to return to its original measures when is closed or the focus is lost
+        if (!self.arIndex[galleryName][self.index[galleryName]]['original-height']) {
+            self.arIndex[galleryName][self.index[galleryName]]['original-height'] = height;
         }
-        if (!$img.attr("original-width")) {
-            $img.attr("original-width", width);
+
+        if (!self.arIndex[galleryName][self.index[galleryName]]['original-width']) {
+            self.arIndex[galleryName][self.index[galleryName]]['original-width'] = width;
         }
         
-        // Avoid lose imng proportions on zoom in
+        // Avoid lose img proportions on zoom in
         $img.css({
             'max-width': '',
             'max-height': '',
@@ -399,7 +434,6 @@ $.fn.EZView =  function(galleryName = 'default') {
             e.stopPropagation();
             e.preventDefault();
 
-            self.returnImageToOriginalMeasures();
             self.close();
         })
 
@@ -407,8 +441,8 @@ $.fn.EZView =  function(galleryName = 'default') {
         .find('.close>img').click(function(e) {
             e.preventDefault();
             e.stopPropagation();
+
             self.close();
-            self.returnImageToOriginalMeasures();
         }).end()
 
         // Stop propagation
@@ -422,7 +456,6 @@ $.fn.EZView =  function(galleryName = 'default') {
             e.stopPropagation();
             e.preventDefault();
             self.back();
-            self.returnImageToOriginalMeasures();
         }).end()
 
         // Add next event
@@ -430,7 +463,6 @@ $.fn.EZView =  function(galleryName = 'default') {
             e.stopPropagation();
             e.preventDefault();
             self.next();
-            self.returnImageToOriginalMeasures();
         }).end()
 
         // Add prevent default
@@ -454,46 +486,66 @@ $.fn.EZView =  function(galleryName = 'default') {
         }).end();
     };
 
+    /**
+     * Calculate the new index and call to show that img
+     * @return void
+     */
     self.next = function() {
 
         var newIndex = self.index[galleryName] + 1;
         
-console.log(self.index[galleryName])
-console.log(newIndex)
-
+        // Check if the link element is visible over the DOM
+        if (!self.arIndex[galleryName][newIndex]) {
+            return;
+        }
+        
         // Check if the element exists
-        if(!$('[index=' + newIndex + ']:visible').length && newIndex < self.arIndex[galleryName].length) {
-            
-            $('[index-render=' + galleryName + self.index[galleryName] + ']').hide();
+        var hrefExist = $('[href="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length;
+        var srcExist = $('[src="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length;
+        var goToNext = hrefExist || srcExist;
+
+        if(!goToNext) {
             
             self.index[galleryName] += 1;
             
-            // Start again from firts image
             return self.next();
         }
 
        self.goTo(newIndex);
     };
 
+    /**
+     * Calculate the new index and call to show that img
+     * @return void
+     */
     self.back = function() {
-        var newIndex = self.index[galleryName]-1;
-        
-        // Check if the element exists
-        if(!$('[index=' + galleryName + newIndex + ']:visible').length  && newIndex > 0) {
-            
-            $('[index-render=' + galleryName + self.index[galleryName] + ']').hide();
-            
-            self.index[galleryName] -= 1;
+        var newIndex = self.index[galleryName] - 1;
 
-            return self.back();
+         // Check if exist next image
+        if (!self.arIndex[galleryName][newIndex]) {
+            return;
         }
         
+        // Check if the link element is visible over the DOM
+        var hrefExist = $('[href="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length;
+        var srcExist = $('[src="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length;
+        var goToBack = hrefExist || srcExist;
+
+        if(!goToBack) {
+            
+            self.index[galleryName] -= 1;
+            
+            return self.back();
+        }
+
         self.goTo(newIndex);
     };
 
     self.goTo = function(newIndex) {
-        
+        // Hide all imgs
         $('.content', self.$EZView).hide();
+
+        self.returnImageToOriginalMeasures(newIndex);
         
         if (self.arIndex[galleryName][newIndex]) {
 
@@ -503,7 +555,6 @@ console.log(newIndex)
                 
                 $('[index-render=' + galleryName + newIndex + ']').slideDown();
                 
-                self.showOrHideControls(newIndex);
             }else{
                 
                 $('[index-render=' + galleryName + self.index[galleryName] + ']').slideUp();
@@ -514,6 +565,8 @@ console.log(newIndex)
 
                 self.arIndex[galleryName][newIndex].isRender = true;
             }
+            
+            self.showOrHideControls(newIndex);
 
             self.index[galleryName] = newIndex;
         }
@@ -521,21 +574,11 @@ console.log(newIndex)
 
     self.init = function(e) {
         
-        //Create main container if not exists
-        self.createContainer();
         self.index[galleryName] = parseInt($(e.target).attr('index'));
 
         self.showOrHideControls(self.index[galleryName]);
         
-        $('.content', self.$EZView).hide();
-
-        if (self.arIndex[galleryName][self.index[galleryName]].isRender) {
-            $('[index-render='+galleryName+self.index[galleryName]+']').show();
-        }else{
-            self.setObjectTemplate(self.builtObjectTemplate(self.index[galleryName]));
-            self.arIndex[galleryName][self.index[galleryName]].isRender = true;
-            $('[index-render='+galleryName+self.index[galleryName]+']').show();
-        }
+        self.goTo(self.index[galleryName]);
 
         // Add keyup events
         $(window).off('keyup', null, self.keyupEvents).keyup(self.keyupEvents);

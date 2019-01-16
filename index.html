@@ -55,12 +55,13 @@
 </html>
 
 <script>
-    // Init pluging in all the images
-    
-    $('.gallery1').EZView('gall1');
-    $('.gallery2').EZView('gall2');
 
-    // Add delete action
+    // Init pluging in all the images
+    // Create a gallery with all gallery1 images 
+    $('.gallery1').EZView();
+    $('.gallery2').EZView();
+
+    // Add delete action (Just to test purposes)
     $('.delete').click(function() {
         $(this).prev().hide().end().hide();
     });
