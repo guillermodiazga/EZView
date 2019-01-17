@@ -1,6 +1,6 @@
 "use strict";
 /*
- * jQuery plugin to show images and pdf files preview
+ * jQuery plugin to show images and pdf files on preview
  * https://github.com/guillermodiazga/EZView
  *
  * Copyright 2017, Guillermo Diaz
@@ -18,10 +18,40 @@ if (!window.jQuery) {
 
 /**
  * Plugin Definition
- * @param {string} galleryName [This galery name in use to create a set of images and navigate through them]
+ * @param {string} collectionName [This galery name in use to create a set of images and navigate through them]
+ * 
+ * Viewer will create inside the body a container by each collection of images
+ *  <.EZView #EZView[auto-numeric-collection]>
+ *      <.image-collection>
+ *          <img [index-content = EZView[auto-numeric-collection][auto-numeric-img]]>
+ *      </.image-collection>
+ *  </.EZView> 
+ *  
+ *  e.g.
+ *  
+ *  <body>
+ *      <.EZView #EZView0>
+ *          <.image-collection>
+ *              <img [index-content = EZView00]>
+ *              <img [index-content = EZView01]>
+ *              <img [index-content = EZView02]>
+ *          </.image-collection>
+ *      </.EZView>
+ *      <.EZView #EZView1>
+ *          <.image-collection>
+ *              <img [index-content = EZView10]>
+ *              <img [index-content = EZView11]>
+ *          </.image-collection>
+ *      </.EZView>
+ *  </body>
+ *  
  */
-$.fn.EZView =  function(galleryName) {
+$.fn.EZView =  function(collectionName) {
     var self = this;
+
+    if (!$(self).length) {
+        throw Error('No jQuery elements found');
+    }
 
     /**
      * Initial actions
@@ -29,74 +59,76 @@ $.fn.EZView =  function(galleryName) {
      */
     self.constructor = function() {
 
-        self.$EZView          = null;
-        self.iFramesSupported = true;
-        self.arIndex          = [];
-        self.index            = [];
+        var $thumbnails = $(this);
+
+        self.$EZView   = null;
+        self.arContent = [];
+        self.index     = [];
 
         self.icons = {
             'next':     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAWCAYAAAAfD8YZAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjA1OUQzQkZEMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjA1OUQzQkZDMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Po6G6sQAAAB/SURBVHjaYvj//z8DDANBARALIIvhw8gaFwAxiHGBWAPQNf4nxQBsGok2gAGq6D85BoCAALkGwEwgywBkJ5BsALofSDIAWyAQbQCuUCTKACYGSgDVnE12gJEdVWQnEoqSJyUZgwmqABu4CMQOQEUf8EYV2YUBxcUQuQUgQIABAENaIhLMSm8LAAAAAElFTkSuQmCC',
             'back':     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAWCAYAAAAfD8YZAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjA1OUQzQzAxMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjA1OUQzQzAwMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PjJSsWEAAAB3SURBVHjaYvj//z8DMRgIBIC4AEWMBI0XgBjEWUC0ZjSN/5ENIEcj3AByNf4Hy5GtEaSGXI0YfiZFI4pmUjXCNZOjEaqPPI0gzMRACaDI2RQHGMVRRXEioTh5kmIAE55Y+ACkHID4Ig4lF2hXGFBcDOErAAECDAApfSISSEStFwAAAABJRU5ErkJggg==',
             'download': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjM2MDhDRDE0MDY5RDExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjM2MDhDRDEzMDY5RDExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqrnV/wAAACxSURBVHjaYvz//z8DIcDIyPgBSPGjiwP1MhLUS6QFWBURYwETA43BqAWjFgwBC0CZBQUDASjX/icTf0A3D5sPHID4I5nuDSDoA6gvEshwfQJWs7AJkmHJBJzm4JKAWrKACMMX4DUDnyTUkg14DL8AxAKUWiAANQjd8AeEDCfKAiRLkJMviG1AlF5iFEEtMUCyxIFYfYxQTfw0yscfGaEuGjplEaieRq6rh54P0AFAgAEAR8yvtAJdObEAAAAASUVORK5CYII=',
-            'zoomin':   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjg5MkI5ODJFMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjg5MkI5ODJEMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PtK4jPoAAAFgSURBVHjarFZRccMwDLVz+58hlMHKYIYQCIUQCINQCBmDQMgYdAwMwUPgWYtyp2lSZa/R3bsktqwXyfJLfCnFSea9j/UyVpzZVKpY6rrFtRqQUGDQFaYMANnI10vgBJeG4BxzM8kdAsjqDQElyr1EO0EUFkLAk1DOgITcf7JI+B5czBJsTUHXQIZB8f2TxSI4QYAsjE8t2YBdmaNUorI1ohgg0f2TfAZ2Dj7qYHJ9Rs/Lq+QwsOeVHMZcUQBkrCCytEazwT1u2XJ4Ys9nogSBZoBjXogRWzKhexBrwNCZyUjuPzUSunHP2JbcvhBcRIHgRWmC3wLJ2rC0CB+WNlvtT0/82CUTmz8nWFsEclbk/IpBI2rWrVeR+RvO/5B6k8gpepQbA64tRFrNA5JJQW5YtpOR/XyXpBcW0SEkBtF0hHbt5w0+3+/CVDosEyWjny+s1/67HrEqN9A0af83+xZgABRpKnOx6YemAAAAAElFTkSuQmCC',
-            'zoomout':  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjg5MkI5ODMyMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjg5MkI5ODMxMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqDoPeEAAAFMSURBVHjarJUBkYQwDEUpCioBB4eDq4SVUAknAQlIQMJKQALrgHPQVcAmO2Unl0loepCZPwy06WvSkLpt2xrJnHMRHgHUsaEFNIHf0lgNIVRgN9CKQwXNoJ77S+KAybA4VzRDFEAC3UFD1vwf0A4YBEf85oV0dhnM56upQ/N5x3T3xVyDjfyMjiA8ih/LYWbnuyWavST3SasVQFL3J8XSvBYGvkhFT02FwQJY6g/yKUjzWvY+k58xgTZFSfLRrG3OW6qF9CQVWL5OkS+liEN+yfutJgRIG8K+WV8Tjdd7qKguk69UhpjjzgCIzG8ttZVRAIUDgNiGShDPfspdS14w5PMaC9dALHVhDXS69fM0eCF1mtLBpqIKYT1pVBaZ86H7QvTxEFLZJIug0xADqL+idyEo5Qp8sKHn++yuiESJ6HPDXgohoIHeki8BBgDP751LFBCcbgAAAABJRU5ErkJggg==',
+            'zoomIn':   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjg5MkI5ODJFMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjg5MkI5ODJEMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PtK4jPoAAAFgSURBVHjarFZRccMwDLVz+58hlMHKYIYQCIUQCINQCBmDQMgYdAwMwUPgWYtyp2lSZa/R3bsktqwXyfJLfCnFSea9j/UyVpzZVKpY6rrFtRqQUGDQFaYMANnI10vgBJeG4BxzM8kdAsjqDQElyr1EO0EUFkLAk1DOgITcf7JI+B5czBJsTUHXQIZB8f2TxSI4QYAsjE8t2YBdmaNUorI1ohgg0f2TfAZ2Dj7qYHJ9Rs/Lq+QwsOeVHMZcUQBkrCCytEazwT1u2XJ4Ys9nogSBZoBjXogRWzKhexBrwNCZyUjuPzUSunHP2JbcvhBcRIHgRWmC3wLJ2rC0CB+WNlvtT0/82CUTmz8nWFsEclbk/IpBI2rWrVeR+RvO/5B6k8gpepQbA64tRFrNA5JJQW5YtpOR/XyXpBcW0SEkBtF0hHbt5w0+3+/CVDosEyWjny+s1/67HrEqN9A0af83+xZgABRpKnOx6YemAAAAAElFTkSuQmCC',
+            'zoomOut':  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjg5MkI5ODMyMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjg5MkI5ODMxMDZBQjExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqDoPeEAAAFMSURBVHjarJUBkYQwDEUpCioBB4eDq4SVUAknAQlIQMJKQALrgHPQVcAmO2Unl0loepCZPwy06WvSkLpt2xrJnHMRHgHUsaEFNIHf0lgNIVRgN9CKQwXNoJ77S+KAybA4VzRDFEAC3UFD1vwf0A4YBEf85oV0dhnM56upQ/N5x3T3xVyDjfyMjiA8ih/LYWbnuyWavST3SasVQFL3J8XSvBYGvkhFT02FwQJY6g/yKUjzWvY+k58xgTZFSfLRrG3OW6qF9CQVWL5OkS+liEN+yfutJgRIG8K+WV8Tjdd7qKguk69UhpjjzgCIzG8ttZVRAIUDgNiGShDPfspdS14w5PMaC9dALHVhDXS69fM0eCF1mtLBpqIKYT1pVBaZ86H7QvTxEFLZJIug0xADqL+idyEo5Qp8sKHn++yuiESJ6HPDXgohoIHeki8BBgDP751LFBCcbgAAAABJRU5ErkJggg==',
             'close':    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjdGODJCNTUzMDZBMzExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjdGODJCNTUyMDZBMzExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PshQd58AAAB+SURBVHjarJTdCcAgDIRDJ3AU95+io7hBmkAsFuWSwgn3oudnflRRVbHRTcN0m5rPIbknvL6nx9wL0RCELZDpH8H4QCDsAFlhx4UNBiDTmxpayVM8LY1aiqHnqReLmTZDfnQGdvQS1qCnRik2pf20C8l8IrRHy/lGWB/bI8AA4oOVMKhFFb8AAAAASUVORK5CYII=',
         };
 
-        // If we have gallery name set it otherwise set an default name
-        galleryName = galleryName || 'EZView' + (parseInt($('.EZView').length) + 1);
-        
-        // Create container by gallery
+        // If we have a collection set it otherwise set an default name
+        collectionName = collectionName || 'EZView' + (parseInt($('.EZView').length));
+
+        // Create container by collection
         self.createContainer();
 
         /**
-         * index is the current image showing by gallery
+         * index is the current image showing by collection
          * @type {Array}
          */
-        self.index[galleryName] = 0;
+        self.index[collectionName] = 0;
 
         /**
-         * arIndex allow to have all the images information to be show by gallery
+         * arContent allow to have all the images information to be show by collection
          * @type {Array}
          */
-        self.arIndex[galleryName] = [];
-        
+        self.arContent[collectionName] = [];
+
         // Iterate each element and set the click event
-        $(this).each(function(i, el) {
-            var $el = $(el);
+        $thumbnails.each(function(i, thumbnail) {
+            let $thumbnail = $(thumbnail);
 
             // Check if the element exists
-            if (!$el.length) {
+            if (!$thumbnail.length) {
                 return;
             }
 
             try {
                 // Set all the data requiered to navigate through elements
-                self.arIndex[galleryName][i]          = [];
-                self.arIndex[galleryName][i].href     = $el.attr('href') || $el.attr('src');
-                self.arIndex[galleryName][i].name     = ($.trim($el.html()) && $.trim($el.html()).substring(0,30)) || $el.attr('alt').substring(0,30) || '';
-                self.arIndex[galleryName][i].isRender = false;
-                self.arIndex[galleryName][i].isImg    = true;
+                self.arContent[collectionName][i]          = [];
+                self.arContent[collectionName][i].href     = $thumbnail.attr('href') || $thumbnail.attr('src');
+                self.arContent[collectionName][i].name     = $thumbnail.attr('title') ? $thumbnail.attr('title').substring(0,30) : '';
+                self.arContent[collectionName][i].isRender = false;
+                self.arContent[collectionName][i].isImg    = true;
             } catch(e) {
                 console.error(e);
                 console.error(el);
             }
 
-            // Set index on each element
-            $el.attr('index', i);
+            // Set $thumbnail properties
+            $thumbnail
+                // Set index as data property on each $thumbnail element
+                .data('index', i)
 
-            // Add cursor pointer
-            $el.css({cursor: 'pointer'});
+                // Add cursor pointer
+                .css({cursor: 'pointer'})
 
-            // Add events to each element
-            $(this).off().click(function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+                // Add events to each element
+                .off().click(function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                self.init(e);
-            });
+                    self.runEZView(e);
+                });
         });
-        
     }
 
     /**
@@ -114,55 +146,59 @@ $.fn.EZView =  function(galleryName) {
             return;
         }
 
-        var $img = $('[index-render=' + galleryName + index + ']', self.$EZView);
-        var hasOriginalAttributesDefined = self.arIndex[galleryName][index]['original-height'];
+        var $img             = $('[index-content=' + collectionName + index + ']', self.$EZView),
+            hasOriginalSizes = self.arContent[collectionName][index]['original-height'];
 
-        if (hasOriginalAttributesDefined) {
+        if (hasOriginalSizes) {
             $img.animate({
-                'height':  self.arIndex[galleryName][index]['original-height'] + 'px',
-                'width':  self.arIndex[galleryName][index]['original-width'] + 'px'
+                'height':  self.arContent[collectionName][index]['original-height'] + 'px',
+                'width':   self.arContent[collectionName][index]['original-width'] + 'px'
             }, 200);
 
             // Center img over container
             $img.css({top:'auto', left:'auto'});
         }
     };
-    
+
     /**
-     * Create the gallery container
+     * Create the collection container
      * @return void
      */
     self.createContainer = function() {
 
-        if (!$('#EZView' + galleryName).length) {
+        if (!$('#EZView' + collectionName).length) {
 
             var tools = 
-                '<div class="tools-container">'+
-                    '<spam class="name"><b></b></spam>'+
-                    '<spam class="tools">'+
-                        '<a class="download EZViewHighlight" download+"FileName" target="_blank">'+
-                        '<img src="' + self.icons.download + '" alt="Download" /></a>'+
-                        '<a class="zoomin EZViewHighlight" href="">'+
-                        '<img src="' + self.icons.zoomin + '" alt="Zoomin" /></a>'+
-                        '<a class="zoomout EZViewHighlight" href="">'+
-                        '<img src="' + self.icons.zoomout + '" alt="Zoomout" /></a>'+
+                '<div class="tools-container">' +
+                    '<spam class="name"><b></b></spam>' +
+                    '<spam class="tools">' +
+                        '<a class="download EZViewHighlight" download="FileName" target="_blank">' +
+                        '<img src="' + self.icons.download + '" title="Download" /></a>' +
+                        '<a class="zoomIn EZViewHighlight" href="">' +
+                        '<img src="' + self.icons.zoomIn + '" title="Zoom in [hotkey +]" /></a>' +
+                        '<a class="zoomOut EZViewHighlight" href="">' +
+                        '<img src="' + self.icons.zoomOut + '" title="Zoom out [hotkey -]" /></a>' +
                     '</spam>' +
-                    '<a class="close EZViewHighlight" href="">'+
-                    '<img src="' + self.icons.close + '"/></a>'+
+                    '<a class="close EZViewHighlight" href="">' +
+                    '<img src="' + self.icons.close + '"/></a>' +
                 '</div>',
 
-                container = '<div class="object-container"/>' +
-                        '<a class="back EZViewHighlight"><img src="' + self.icons.back + '" alt="Back" /></a>'+
-                        '<a class="next EZViewHighlight"><img src="' + self.icons.next + '" alt="Next" /></a>'+
+                container = '<div class="image-collection"/>' +
+                        '<a class="back EZViewHighlight"><img src="' + self.icons.back + '" title="Back [hotkey <]" /></a>' +
+                        '<a class="next EZViewHighlight"><img src="' + self.icons.next + '" title="Next [hotkey >]" /></a>' +
                         tools,
 
-                template = '<div id="EZView' + galleryName + 
-                           '" class="EZView container hide" style="display: flex; align-items: center; justify-content: center">'+
+                template = '<div id="' + collectionName + '" ' + 
+                           'class="EZView container hide" style="display: flex; align-items: center; justify-content: center">' +
                            container + '</div>';
 
-            $('body').append(template);
+            try {
+                $('body').append(template);
+            } catch(e){
+                console.error('Error creating container: ' + e);  
+            }
 
-            self.$EZView = $('#EZView' + galleryName).hide();
+            self.$EZView = $('#' + collectionName).hide();
 
             self.addEvents();
         }
@@ -174,22 +210,22 @@ $.fn.EZView =  function(galleryName) {
      * @return {boolean}       To know if the index belongs to any img
      */
     self.isImg = function(imgIndex) {
-        return self.arIndex[galleryName][imgIndex].isImg;
+        return self.arContent[collectionName][imgIndex].isImg;
     };
 
     /**
-     * Show controll acording of the image position
+     * Show controlls acording of the current image
      * @param  {int} imgIndex index image to be checked
      * @return void
      */
-    self.showOrHideControls = function(imgIndex) {
-        var href = self.arIndex[galleryName][imgIndex].href,
-            name = self.arIndex[galleryName][imgIndex].name;
+    self.showOrHideControls = function(imgIndex = self.index[collectionName]) {
+        var href = self.arContent[collectionName][imgIndex].href,
+            name = self.arContent[collectionName][imgIndex].name;
 
        if (self.isImg(imgIndex)) {
-            $('.zoomin, .zoomout').fadeIn(200);
-        }else{
-            $('.zoomin, .zoomout').fadeOut(200);
+            $('.zoomIn, .zoomOut').fadeIn(200);
+        } else {
+            $('.zoomIn, .zoomOut').fadeOut(200);
         }
 
         $('.download').attr('href', href);
@@ -198,63 +234,64 @@ $.fn.EZView =  function(galleryName) {
 
         if (imgIndex > 0) {
             $('.back').fadeIn(200);
-        }else{
+        } else {
             $('.back').fadeOut(200);
         }
 
-        if (imgIndex < self.arIndex[galleryName].length-1) {
+        if (imgIndex < self.arContent[collectionName].length-1) {
             $('.next').fadeIn(200);
-        }else{
+        } else {
             $('.next').fadeOut(200);
         }
     };
 
-    self.builtObjectTemplate = function(imgIndex) {
-        var src   = self.arIndex[galleryName][imgIndex].href,
-            isPdf = src.match('.pdf');
-
+    self.buildHtmlContent = function() {
+        var imgIndex = self.index[collectionName],
+            src      = self.arContent[collectionName][imgIndex].href,
+            isPdf    = src.match('.pdf');
+        
         // Content to show 
-        var content = '<img index-render="' + galleryName + imgIndex + '" src="'+src+'" class="content" />';
+        var htmlContent = '<img index-content="' + collectionName + imgIndex + '" src="' + src + '" class="content" />';
 
         // To show pdf files
         if (isPdf) {
-            content = '<iframe class="content" frameborder="0" index-render="' + galleryName + imgIndex + '" height="' + $(window).height()*0.95+'" width="'+$(window).width()*0.9+
+            htmlContent = '<iframe class="content" frameborder="0" index-content="' + collectionName + imgIndex +
+                '" height="' + $(window).height() * 0.95 + '" width="' + $(window).width() * 0.9 +
                 '" src="' + src + '" type="application/pdf"><p>Your browser does not support iframes.</p>'+
-                '<script type="text/javascript">iFramesSupported = false; alert(iFramesSupported)</script><iframe/>';
+                '<script type="text/javascript">alert("Your browser does not support iframes.")</script><iframe/>';
 
-            self.arIndex[galleryName][imgIndex].isImg = false;
+            self.arContent[collectionName][imgIndex].isImg = false;
         }
 
-        return [content, imgIndex];
+        return htmlContent;
     };
 
     /**
      * Set img on view container
-     * @param object [content, index]
+     * @param string htmlContent
      */
-    self.setObjectTemplate = function(object) {
-        var newIndex    = object[1],
-            contentHTML = object[0];
-        
+    self.setContentOnViewer = function(htmlContent) {
+        var newIndex = self.index[collectionName];
+
         // Append object to body
-        self.$EZView.find('.object-container')
+        self.$EZView.find('.image-collection')
 
             // Add img in container
-            .append(contentHTML)
+            .append(htmlContent)
 
-             // Stop propagation
+            // Stop propagation
             .find('.download, img').click(function(e) {
                 // Avoid trigger remove action
                 e.stopPropagation();
             });
-        
-        // Check If href isn't exists and show unsuported msg
-        $('[index-render=' + galleryName + newIndex + ']').on( "error",function() {
-            var style = 'padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)';
-            
-            $(this).replaceWith('<h1 index-render="' + galleryName + self.index[galleryName] + '" style="' + style + '">Unsupported preview</h1>');
 
-            self.arIndex[galleryName][self.index[galleryName]].isImg = false;
+        // Check If href isn't exists and show unsuported msg
+        $('[index-content=' + collectionName + newIndex + ']').on( "error",function() {
+            var style = 'padding: 10px; border-radius: 10px; background-color: rgba(255,255,255,0.6)';
+
+            $(this).replaceWith('<h1 class = "content" index-content="' + collectionName + self.index[collectionName] + '" style="' + style + '">Unsupported preview</h1>');
+
+            self.arContent[collectionName][self.index[collectionName]].isImg = false;
         });
 
         self.setStyles();
@@ -384,7 +421,7 @@ $.fn.EZView =  function(galleryName) {
             self.zoom(true);
             break;
 
-        // zoomout
+        // zoomOut
         case 109:
             self.zoom();
             break;
@@ -392,14 +429,14 @@ $.fn.EZView =  function(galleryName) {
     };
     
     /**
-     * Hide gallery
+     * Hide collection
      * @return void
      */
     self.close = function () {
         // Hide EZView elements
         self.$EZView.hide(200)
         
-        self.returnImageToOriginalMeasures(self.index[galleryName]);
+        self.returnImageToOriginalMeasures(self.index[collectionName]);
 
         // Remove keyup events
         $(window).off('keyup', null, self.keyupEvents);
@@ -411,21 +448,21 @@ $.fn.EZView =  function(galleryName) {
      * @return void
      */
     self.zoom = function (increment) {
-        if (!self.isImg(self.index[galleryName])) {
+        if (!self.isImg(self.index[collectionName])) {
             return;
         }
 
-        var $img   = $('[index-render=' + galleryName + self.index[galleryName] + ']', self.$EZView),
+        var $img   = $('[index-content=' + collectionName + self.index[collectionName] + ']', self.$EZView),
             height = parseInt($img.css('height')),
             width  = parseInt($img.css('width'));
         
         // Allow the image to return to its original measures when is closed or the focus is lost
-        if (!self.arIndex[galleryName][self.index[galleryName]]['original-height']) {
-            self.arIndex[galleryName][self.index[galleryName]]['original-height'] = height;
+        if (!self.arContent[collectionName][self.index[collectionName]]['original-height']) {
+            self.arContent[collectionName][self.index[collectionName]]['original-height'] = height;
         }
 
-        if (!self.arIndex[galleryName][self.index[galleryName]]['original-width']) {
-            self.arIndex[galleryName][self.index[galleryName]]['original-width'] = width;
+        if (!self.arContent[collectionName][self.index[collectionName]]['original-width']) {
+            self.arContent[collectionName][self.index[collectionName]]['original-width'] = width;
         }
 
         // Avoid lose img proportions on zoom in
@@ -499,20 +536,20 @@ $.fn.EZView =  function(galleryName) {
             }).end()
 
             // Add prevent default
-            .find('.zoomin, .zoomout, .close').click(function(e) {
+            .find('.zoomIn, .zoomOut, .close').click(function(e) {
                 e.stopPropagation();
                 e.preventDefault();
             }).end()
 
-            // Add zoomin event
-            .find('.zoomin>img').click(function(e) {
+            // Add zoomIn event
+            .find('.zoomIn>img').click(function(e) {
                 e.stopPropagation();
                 e.preventDefault();
                 self.zoom(true);
             }).end()
 
-            // Add zoomout event
-            .find('.zoomout>img').click(function(e) {
+            // Add zoomOut event
+            .find('.zoomOut>img').click(function(e) {
                 e.stopPropagation();
                 e.preventDefault();
                 self.zoom();
@@ -525,22 +562,22 @@ $.fn.EZView =  function(galleryName) {
      */
     self.next = function() {
 
-        var newIndex = self.index[galleryName] + 1;
+        var newIndex = self.index[collectionName] + 1;
 
         // Check if the link element is visible over the DOM
-        if (!self.arIndex[galleryName][newIndex]) {
+        if (!self.arContent[collectionName][newIndex]) {
             return;
         }
 
         // Check if the element exists
-        var hrefExist = $('[href="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length,
-            srcExist = $('[src="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length,
+        var hrefExist = $('[href="' + self.arContent[collectionName][newIndex].href + '"]:visible').length,
+            srcExist = $('[src="' + self.arContent[collectionName][newIndex].href + '"]:visible').length,
             goToNext = hrefExist || srcExist;
 
         // If the element does not exists on view, go to the next img
         if(!goToNext) {
 
-            self.index[galleryName] += 1;
+            self.index[collectionName] += 1;
 
             return self.next();
         }
@@ -553,22 +590,22 @@ $.fn.EZView =  function(galleryName) {
      * @return void
      */
     self.back = function() {
-        var newIndex = self.index[galleryName] - 1;
+        var newIndex = self.index[collectionName] - 1;
 
          // Check if exist next image
-        if (!self.arIndex[galleryName][newIndex]) {
+        if (!self.arContent[collectionName][newIndex]) {
             return;
         }
 
         // Check if the link element is visible over the DOM
-        var hrefExist = $('[href="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length,
-            srcExist = $('[src="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length,
+        var hrefExist = $('[href="' + self.arContent[collectionName][newIndex].href + '"]:visible').length,
+            srcExist = $('[src="' + self.arContent[collectionName][newIndex].href + '"]:visible').length,
             goToBack = hrefExist || srcExist;
 
         // If the element does not exists on view, go to the next back img
         if(!goToBack) {
 
-            self.index[galleryName] -= 1;
+            self.index[collectionName] -= 1;
 
             return self.back();
         }
@@ -577,55 +614,56 @@ $.fn.EZView =  function(galleryName) {
     };
 
     /**
-     * Set image on view container gallery
+     * Set image on view container collection
      * @param  {int} newIndex image index to be show
      * @return void
      */
     self.goTo = function(newIndex) {
         // Hide all imgs
         $('.content', self.$EZView).hide();
+        
+        self.index[collectionName] = newIndex;
 
         self.returnImageToOriginalMeasures(newIndex);
 
-        if (self.arIndex[galleryName][newIndex]) {
+        if (self.arContent[collectionName][newIndex]) {
 
-            if (self.arIndex[galleryName][newIndex].isRender) {
+            if (self.arContent[collectionName][newIndex].isRender) {
 
-                $('[index-render=' + galleryName + self.index[galleryName]+']').slideUp();
+                $('[index-content=' + collectionName + self.index[collectionName]+']').slideUp();
 
-                $('[index-render=' + galleryName + newIndex + ']').slideDown();
+                $('[index-content=' + collectionName + newIndex + ']').slideDown();
 
-            }else{
+            } else {
 
-                $('[index-render=' + galleryName + self.index[galleryName] + ']').slideUp();
+                $('[index-content=' + collectionName + self.index[collectionName] + ']').slideUp();
 
-                self.setObjectTemplate(self.builtObjectTemplate(newIndex));
+                self.setContentOnViewer(self.buildHtmlContent());
 
-                $('[index-render=' + galleryName + newIndex + ']').slideDown();
+                $('[index-content=' + collectionName + newIndex + ']').slideDown();
 
-                self.arIndex[galleryName][newIndex].isRender = true;
+                self.arContent[collectionName][newIndex].isRender = true;
             }
 
-            self.showOrHideControls(newIndex);
-
-            self.index[galleryName] = newIndex;
+            self.showOrHideControls();
         }
     };
 
     /**
-     * Open gallery with the image clicked
-     * @param  {object} e event imag clicked
+     * Open collection with the image thumbnail clicked
+     * @param  {object} e event imag thumbnail clicked
      * @return void
      */
-    self.init = function(e) {
+    self.runEZView = function(e) {
+        var $thumbnail = $(e.target);
 
-        // Set index of gallery img
-        self.index[galleryName] = parseInt($(e.target).attr('index'));
+        // Set index of collection img
+        self.index[collectionName] = parseInt($thumbnail.data('index'));
 
-        self.showOrHideControls(self.index[galleryName]);
+        self.showOrHideControls();
 
-        // Set img on gallery
-        self.goTo(self.index[galleryName]);
+        // Set img on collection
+        self.goTo(self.index[collectionName]);
 
         // Add keyup events
         $(window).off('keyup', null, self.keyupEvents).keyup(self.keyupEvents);

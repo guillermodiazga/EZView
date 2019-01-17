@@ -3,7 +3,7 @@ $.fn.draggable = function (opt) {
     var settings = {
         handle: "",
         cursor: "move",
-        axis: null,
+        axis:   null,
         containParent: false
     };
 
