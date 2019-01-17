@@ -15,8 +15,6 @@ $.fn.draggable = function (opt) {
         var $el = base.find(opt.handle);
     }
 
-
-
     return $el.css('cursor', opt.cursor).on("mousedown", function (e) {
         if (opt.handle === "") {
             var $drag = $(this).addClass('draggable');
@@ -39,8 +37,6 @@ $.fn.draggable = function (opt) {
             parX2 = parX1 + parW,
             parY1 = parseInt(parent.offset().top) + parseInt(parent.css('padding-top').replace('px', '')),
             parY2 = parY1 + parH;
-
-
 
         $drag.css('z-index', 1000).parents().on("mousemove", function (e) {
             var off_top = e.pageY + pos_y - drg_h,

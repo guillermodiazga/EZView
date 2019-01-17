@@ -8,12 +8,18 @@
  * Licensed under the MIT license:
  * https://opensource.org/licenses/MIT
  */
-var $ = jQuery;
 
-if (!$) {
-    window.console.error('jQuery is required');
+/**
+ * Check if jQuery is loaded
+ */
+if (!window.jQuery) {
+    throw Error('jQuery is required');
 }
 
+/**
+ * Plugin Definition
+ * @param {string} galleryName [This galery name in use to create a set of images and navigate through them]
+ */
 $.fn.EZView =  function(galleryName) {
     var self = this;
 
@@ -23,11 +29,10 @@ $.fn.EZView =  function(galleryName) {
      */
     self.constructor = function() {
 
-        var self              = this;
-
         self.$EZView          = null;
         self.iFramesSupported = true;
         self.arIndex          = [];
+        self.index            = [];
 
         self.icons = {
             'next':     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAWCAYAAAAfD8YZAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+5pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjY1RTYzOTA2ODZDRjExREJBNkUyRDg4N0NFQUNCNDA3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjA1OUQzQkZEMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjA1OUQzQkZDMDZBODExRTI5OUZEQTZGODg4RDc1ODdCIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMTgwMTE3NDA3MjA2ODExODA4M0ZFMkJBM0M1RUU2NSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowNjgwMTE3NDA3MjA2ODExODA4M0U3NkRBMDNEMDVDMSIvPiA8ZGM6dGl0bGU+IDxyZGY6QWx0PiA8cmRmOmxpIHhtbDpsYW5nPSJ4LWRlZmF1bHQiPmdseXBoaWNvbnM8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2RjOnRpdGxlPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Po6G6sQAAAB/SURBVHjaYvj//z8DDANBARALIIvhw8gaFwAxiHGBWAPQNf4nxQBsGok2gAGq6D85BoCAALkGwEwgywBkJ5BsALofSDIAWyAQbQCuUCTKACYGSgDVnE12gJEdVWQnEoqSJyUZgwmqABu4CMQOQEUf8EYV2YUBxcUQuQUgQIABAENaIhLMSm8LAAAAAElFTkSuQmCC',
@@ -43,15 +48,17 @@ $.fn.EZView =  function(galleryName) {
         
         // Create container by gallery
         self.createContainer();
-    
-        // Init index by gallery
-        self.index = [];
+
+        /**
+         * index is the current image showing by gallery
+         * @type {Array}
+         */
         self.index[galleryName] = 0;
 
-        // Hide an previous existing container
-        $('#EZView'+galleryName).hide();
-
-        self.arIndex = [];
+        /**
+         * arIndex allow to have all the images information to be show by gallery
+         * @type {Array}
+         */
         self.arIndex[galleryName] = [];
         
         // Iterate each element and set the click event
@@ -64,7 +71,7 @@ $.fn.EZView =  function(galleryName) {
             }
 
             try {
-                // Get data requiered to navigate between elements
+                // Set all the data requiered to navigate through elements
                 self.arIndex[galleryName][i]          = [];
                 self.arIndex[galleryName][i].href     = $el.attr('href') || $el.attr('src');
                 self.arIndex[galleryName][i].name     = ($.trim($el.html()) && $.trim($el.html()).substring(0,30)) || $el.attr('alt').substring(0,30) || '';
@@ -96,6 +103,11 @@ $.fn.EZView =  function(galleryName) {
      * Methods Definition:
      */
 
+     /**
+      * Return image to original measures
+      * @param  {int} index [description]
+      * @return void
+      */
     self.returnImageToOriginalMeasures = function (index) {
 
         if (!self.isImg(index)) {
@@ -110,6 +122,9 @@ $.fn.EZView =  function(galleryName) {
                 'height':  self.arIndex[galleryName][index]['original-height'] + 'px',
                 'width':  self.arIndex[galleryName][index]['original-width'] + 'px'
             }, 200);
+
+            // Center img over container
+            $img.css({top:'auto', left:'auto'});
         }
     };
     
@@ -147,7 +162,7 @@ $.fn.EZView =  function(galleryName) {
 
             $('body').append(template);
 
-            self.$EZView = $('#EZView' + galleryName);
+            self.$EZView = $('#EZView' + galleryName).hide();
 
             self.addEvents();
         }
@@ -156,12 +171,17 @@ $.fn.EZView =  function(galleryName) {
     /**
      * Check if the index belongs to any img
      * @param  {int}  imgIndex index to be checked
-     * @return {Boolean}       To know if the index belongs to any img
+     * @return {boolean}       To know if the index belongs to any img
      */
     self.isImg = function(imgIndex) {
         return self.arIndex[galleryName][imgIndex].isImg;
     };
 
+    /**
+     * Show controll acording of the image position
+     * @param  {int} imgIndex index image to be checked
+     * @return void
+     */
     self.showOrHideControls = function(imgIndex) {
         var href = self.arIndex[galleryName][imgIndex].href,
             name = self.arIndex[galleryName][imgIndex].name;
@@ -181,7 +201,7 @@ $.fn.EZView =  function(galleryName) {
         }else{
             $('.back').fadeOut(200);
         }
-            
+
         if (imgIndex < self.arIndex[galleryName].length-1) {
             $('.next').fadeIn(200);
         }else{
@@ -208,8 +228,9 @@ $.fn.EZView =  function(galleryName) {
         return [content, imgIndex];
     };
 
-    /*
-     * @param object [content, index]  
+    /**
+     * Set img on view container
+     * @param object [content, index]
      */
     self.setObjectTemplate = function(object) {
         var newIndex    = object[1],
@@ -243,85 +264,95 @@ $.fn.EZView =  function(galleryName) {
 
     self.setStyles = function() {
         // Set Styles
-        self.$EZView.css({
-            'background-color': 'rgba(0,0,0,0.5)',
-            'height':           '100%',
-            'width':            '100%',
-            'z-index':          '10000',
-            'position':         'fixed',
-            'top':              '0',
-            'left':             '0',
-            'cursor':           'default',
-            'aling-items':      'center',
-            'margin':           'auto',
-        })
-        .find('.content').css({
-            'max-width':  $(window).width()*0.7,
-            'max-height': $(window).height()*0.9,
-            'z-index':    '10001',
-        }).end()
-        .find('.name').css({
-            'display': 'flex',
-            'align-items': 'center',
-            'justify-content': 'center',
-            'padding':  '7px',
-        }).end()
-        .find('.close>img').css({
-            'top':      '0',
-            'right':    '0',
-            'position': 'fixed',
-        }).end()
-        .find('.back>img').css({
-            'top': $(window).height()*0.5,
-            'left': '0',
-            'position': 'fixed',
-        }).end()
-        .find('.next>img').css({
-            'top': $(window).height()*0.5,
-            'right': '0',
-            'position': 'fixed',
-        }).end()
-        .find('.tools-container').css({
-            'background-color': 'rgba(255,255,255,0.5)',
-            'height':           '35px',
-            'width':            '100%',
-            'position':         'fixed',
-            'top':              '0',
-            'left':             '0',
-            'padding':          '3px',
-            'padding-top':       '0px',
-            'z-index':          '100000'
-        }).end()
-        .find('.tools-container>a').css({
-            'margin' : '10px',
-        }).end()
-        .find('.tools').css({
-            'top':      '0',
-            'left':    '0',
-            'position': 'fixed',
-        }).end()
-        .find('.EZViewHighlight>img').css({
-            'padding': '10px',
-            'height':  'auto',
-            'width':   'auto',
-            'z-index': '100000',
-            'cursor':  'pointer',
-        }).end()
-        .find('.EZViewHighlight>img').hover(
-            function() {
-                $(this).css({
-                    'border-radius':    '100%',
-                    'background-color': 'rgba(255,255,255,0.5)',
-                    'z-index':          '100000'
-                });
-            },
-            function() {
-                $(this).css({
-                    'background-color': '',
-                    'border-radius':    '',
-                });
-            }
-        );
+        self.$EZView
+            .css({
+                'background-color': 'rgba(0,0,0,0.5)',
+                'height':           '100%',
+                'width':            '100%',
+                'z-index':          '10000',
+                'position':         'fixed',
+                'top':              '0',
+                'left':             '0',
+                'cursor':           'default',
+                'aling-items':      'center',
+                'margin':           'auto',
+            })
+
+            .find('.content').css({
+                'max-width':  $(window).width()*0.7,
+                'max-height': $(window).height()*0.9,
+                'z-index':    '10001',
+            }).end()
+
+            .find('.name').css({
+                'display': 'flex',
+                'align-items': 'center',
+                'justify-content': 'center',
+                'padding':  '7px',
+            }).end()
+
+            .find('.close>img').css({
+                'top':      '0',
+                'right':    '0',
+                'position': 'fixed',
+            }).end()
+
+            .find('.back>img').css({
+                'top': $(window).height()*0.5,
+                'left': '0',
+                'position': 'fixed',
+            }).end()
+            .find('.next>img').css({
+                'top': $(window).height()*0.5,
+                'right': '0',
+                'position': 'fixed',
+            }).end()
+
+            .find('.tools-container').css({
+                'background-color': 'rgba(255,255,255,0.5)',
+                'height':           '35px',
+                'width':            '100%',
+                'position':         'fixed',
+                'top':              '0',
+                'left':             '0',
+                'padding':          '3px',
+                'padding-top':       '0px',
+                'z-index':          '100000'
+            }).end()
+
+            .find('.tools-container>a').css({
+                'margin' : '10px',
+            }).end()
+
+            .find('.tools').css({
+                'top':      '0',
+                'left':    '0',
+                'position': 'fixed',
+            }).end()
+
+            .find('.EZViewHighlight>img').css({
+                'padding': '10px',
+                'height':  'auto',
+                'width':   'auto',
+                'z-index': '100000',
+                'cursor':  'pointer',
+            }).end()
+
+            .find('.EZViewHighlight>img').hover(
+                function() {
+                    $(this).css({
+                        'border-radius':    '100%',
+                        'background-color': 'rgba(255,255,255,0.5)',
+                        'z-index':          '100000'
+                    });
+                },
+                function() {
+                    $(this).css({
+                        'background-color': '',
+                        'border-radius':    '',
+                    });
+                }
+            );
     };
 
     /**
@@ -384,9 +415,9 @@ $.fn.EZView =  function(galleryName) {
             return;
         }
 
-         var $img   = $('[index-render=' + galleryName + self.index[galleryName] + ']', self.$EZView),
-             height = parseInt($img.css('height')),
-             width  = parseInt($img.css('width'));
+        var $img   = $('[index-render=' + galleryName + self.index[galleryName] + ']', self.$EZView),
+            height = parseInt($img.css('height')),
+            width  = parseInt($img.css('width'));
         
         // Allow the image to return to its original measures when is closed or the focus is lost
         if (!self.arIndex[galleryName][self.index[galleryName]]['original-height']) {
@@ -396,20 +427,21 @@ $.fn.EZView =  function(galleryName) {
         if (!self.arIndex[galleryName][self.index[galleryName]]['original-width']) {
             self.arIndex[galleryName][self.index[galleryName]]['original-width'] = width;
         }
-        
+
         // Avoid lose img proportions on zoom in
         $img.css({
             'max-width': '',
             'max-height': '',
         });
 
-        // Enable drag
+        // Enable drag if we have the pluging available
         if ($.fn.draggable) {
-            $img.draggable()
-            .css({'cursor': 'move'});
+            $img
+                .draggable()
+                .css({'cursor': 'move'});
         }
 
-        // Increase or decrease size
+        // Increase or decrease sizes
         if (increment) {
             height += height * 0.2;
             width  += width * 0.2;
@@ -418,6 +450,7 @@ $.fn.EZView =  function(galleryName) {
             width  -= width * 0.2;
         }
 
+        // Do the zoom
         $img.animate({
             'height': (height)+'px',
             'width': (width)+'px'
@@ -429,61 +462,61 @@ $.fn.EZView =  function(galleryName) {
         // Main container
         self.$EZView
 
-        // Add close Event
-        .click(function(e) {
-            e.stopPropagation();
-            e.preventDefault();
+            // Add close Event
+            .click(function(e) {
+                e.stopPropagation();
+                e.preventDefault();
 
-            self.close();
-        })
+                self.close();
+            })
 
-        // Add close Event
-        .find('.close>img').click(function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+            // Add close Event
+            .find('.close>img').click(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-            self.close();
-        }).end()
+                self.close();
+            }).end()
 
-        // Stop propagation
-        .find('.download, img, .tools').click(function(e) {
-            // Avoid trigger remove action
-            e.stopPropagation();
-        }).end()
+            // Stop propagation
+            .find('.download, img, .tools').click(function(e) {
+                // Avoid trigger remove action
+                e.stopPropagation();
+            }).end()
 
-        // Add back event
-        .find('.back>img').click(function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            self.back();
-        }).end()
+            // Add back event
+            .find('.back>img').click(function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                self.back();
+            }).end()
 
-        // Add next event
-        .find('.next>img').click(function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            self.next();
-        }).end()
+            // Add next event
+            .find('.next>img').click(function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                self.next();
+            }).end()
 
-        // Add prevent default
-        .find('.zoomin, .zoomout, .close').click(function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-        }).end()
+            // Add prevent default
+            .find('.zoomin, .zoomout, .close').click(function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }).end()
 
-        // Add zoomin event
-        .find('.zoomin>img').click(function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            self.zoom(true);
-        }).end()
+            // Add zoomin event
+            .find('.zoomin>img').click(function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                self.zoom(true);
+            }).end()
 
-        // Add zoomout event
-        .find('.zoomout>img').click(function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            self.zoom();
-        }).end();
+            // Add zoomout event
+            .find('.zoomout>img').click(function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                self.zoom();
+            });
     };
 
     /**
@@ -493,21 +526,22 @@ $.fn.EZView =  function(galleryName) {
     self.next = function() {
 
         var newIndex = self.index[galleryName] + 1;
-        
+
         // Check if the link element is visible over the DOM
         if (!self.arIndex[galleryName][newIndex]) {
             return;
         }
-        
-        // Check if the element exists
-        var hrefExist = $('[href="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length;
-        var srcExist = $('[src="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length;
-        var goToNext = hrefExist || srcExist;
 
+        // Check if the element exists
+        var hrefExist = $('[href="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length,
+            srcExist = $('[src="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length,
+            goToNext = hrefExist || srcExist;
+
+        // If the element does not exists on view, go to the next img
         if(!goToNext) {
-            
+
             self.index[galleryName] += 1;
-            
+
             return self.next();
         }
 
@@ -525,59 +559,72 @@ $.fn.EZView =  function(galleryName) {
         if (!self.arIndex[galleryName][newIndex]) {
             return;
         }
-        
-        // Check if the link element is visible over the DOM
-        var hrefExist = $('[href="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length;
-        var srcExist = $('[src="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length;
-        var goToBack = hrefExist || srcExist;
 
+        // Check if the link element is visible over the DOM
+        var hrefExist = $('[href="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length,
+            srcExist = $('[src="' + self.arIndex[galleryName][newIndex].href + '"]:visible').length,
+            goToBack = hrefExist || srcExist;
+
+        // If the element does not exists on view, go to the next back img
         if(!goToBack) {
-            
+
             self.index[galleryName] -= 1;
-            
+
             return self.back();
         }
 
         self.goTo(newIndex);
     };
 
+    /**
+     * Set image on view container gallery
+     * @param  {int} newIndex image index to be show
+     * @return void
+     */
     self.goTo = function(newIndex) {
         // Hide all imgs
         $('.content', self.$EZView).hide();
 
         self.returnImageToOriginalMeasures(newIndex);
-        
+
         if (self.arIndex[galleryName][newIndex]) {
 
             if (self.arIndex[galleryName][newIndex].isRender) {
-                
+
                 $('[index-render=' + galleryName + self.index[galleryName]+']').slideUp();
-                
+
                 $('[index-render=' + galleryName + newIndex + ']').slideDown();
-                
+
             }else{
-                
+
                 $('[index-render=' + galleryName + self.index[galleryName] + ']').slideUp();
-                
+
                 self.setObjectTemplate(self.builtObjectTemplate(newIndex));
-                
+
                 $('[index-render=' + galleryName + newIndex + ']').slideDown();
 
                 self.arIndex[galleryName][newIndex].isRender = true;
             }
-            
+
             self.showOrHideControls(newIndex);
 
             self.index[galleryName] = newIndex;
         }
     };
 
+    /**
+     * Open gallery with the image clicked
+     * @param  {object} e event imag clicked
+     * @return void
+     */
     self.init = function(e) {
-        
+
+        // Set index of gallery img
         self.index[galleryName] = parseInt($(e.target).attr('index'));
 
         self.showOrHideControls(self.index[galleryName]);
-        
+
+        // Set img on gallery
         self.goTo(self.index[galleryName]);
 
         // Add keyup events
@@ -587,7 +634,6 @@ $.fn.EZView =  function(galleryName) {
         self.$EZView.show(200);
     };
 
-    // Constructor
+    // Return constructor execution
     return self.constructor();
 };
-
