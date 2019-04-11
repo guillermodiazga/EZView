@@ -189,7 +189,7 @@ $.fn.EZView =  function(collectionName) {
                         tools,
 
                 template = '<div id="' + collectionName + '" ' + 
-                           'class="EZView container hide" style="display: flex; align-items: center; justify-content: center">' +
+                           'class="EZView EZView-container hide" style="display: flex; align-items: center; justify-content: center">' +
                            container + '</div>';
 
             try {
@@ -303,7 +303,7 @@ $.fn.EZView =  function(collectionName) {
         // Set Styles
         self.$EZView
             .css({
-                'background-color': 'rgba(0,0,0,0.5)',
+                'background-color': 'rgba(0,0,0,0.5)!important',
                 'height':           '100%',
                 'width':            '100%',
                 'z-index':          '10000',
@@ -318,6 +318,7 @@ $.fn.EZView =  function(collectionName) {
             .find('.content').css({
                 'max-width':  $(window).width()*0.7,
                 'max-height': $(window).height()*0.9,
+                'width':      $(window).width()*0.5, // Inicial image width
                 'z-index':    '10001',
             }).end()
 
